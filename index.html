@@ -180,6 +180,13 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
       <div><label>Telefone *</label><input type="tel" id="fone" placeholder="(79) 90000-0000"></div>
       <div><label>E-mail *</label><input type="email" id="email" placeholder="nome@empresa.com.br"></div>
     </div>
+    <label class="chk" id="lembrar" style="margin-top:14px">
+      <input type="checkbox">
+      <span>Lembrar estes dados neste aparelho, para eu não digitar tudo de novo na próxima solicitação.
+      <br><span style="font-size:12px;color:var(--tinta-md)">Fica salvo só no seu celular ou computador —
+      a COOPERMAX não recebe nada além do que você enviar no final. Dá para apagar quando quiser.</span></span>
+    </label>
+    <div id="avisoSalvo"></div>
   </section>
 </div>
 
@@ -401,8 +408,10 @@ const CENTRAIS = {
   saude: { nome:"Saúde e Alimentação",     fone:"5579996821555", exibe:"(79) 99682-1555" }
 };
 
-/* Cada grupo de atividades aponta para a central que o atende.
-   Os rótulos abaixo são os mesmos dos grupos da lista de atividades. */
+/* A central é definida pela PARCEIRA (campo "central" no cadastro): a coordenação
+   responde por todas as contratações daquela empresa, qualquer que seja a atividade.
+   A tabela abaixo só é usada quando não há parceira identificada — acesso direto
+   ao endereço, sem o link personalizado. */
 const ROTA_CENTRAL = {
   "Construção e manutenção":        "obras",
   "Serviços gerais e condomínio":   "obras",
@@ -475,23 +484,26 @@ const COND = [
 const PARCEIRAS = {
   petrox:{
     nome:"Petrox",
-    razao:"Petrox",
-    cnpj:"",
+    razao:"PETROX COMERCIAL LTDA",
+    cnpj:"05.297.480/0001-18",
     unidades:[],
-    segmentos:["Construção e manutenção"]
+    central:"obras",                          // coordenação responsável por TODAS as contratações
+    segmentos:["Construção e manutenção"]     // atividades sugeridas (não limita: há "ver todas")
   },
   gsi:{
     nome:"GSI",
-    razao:"GSI",
-    cnpj:"",
+    razao:"GSI ALIMENTAÇÃO LTDA",
+    cnpj:"13.756.765/0001-06",
     unidades:[],
+    central:"saude",
     segmentos:["Alimentação","Serviços gerais e condomínio"]
   },
   uniclin:{
     nome:"UNICLIN",
-    razao:"UNICLIN",
-    cnpj:"",
+    razao:"UNICLIN UNIDADE CLÍNICA DE SERGIPE LABORATÓRIO LTDA-ME",
+    cnpj:"17.493.759/0001-56",
     unidades:[],
+    central:"saude",
     segmentos:["Saúde"]
   }
 };
@@ -710,6 +722,58 @@ function montaEspecificas(){
 document.addEventListener("DOMContentLoaded",()=>{});
 $("funcao").addEventListener("change",montaEspecificas);
 
+/* ===== MEMÓRIA DO APARELHO =====================================================
+   Guarda no próprio celular/computador do responsável os dados que ele repete a
+   cada solicitação. Nada disso vai para a COOPERMAX antes do envio, e nada sai do
+   aparelho dele. Só grava se ele marcar a caixa (consentimento — LGPD).
+   NÃO guardamos CPF nem assinatura: cada solicitação é assinada na hora, do
+   contrário o aceite eletrônico perde valor.                                     */
+const MEM_CHAVE = "coopermax_dados_v1";
+const MEM_CAMPOS = ["razao","cnpj","unidade","resp","cargo","fone","email"];
+
+function memLe(){
+  try{ return JSON.parse(localStorage.getItem(MEM_CHAVE)||"null"); }catch(e){ return null; }
+}
+function memGrava(){
+  if(!$("lembrar").querySelector("input").checked) return;
+  try{
+    const d={};
+    MEM_CAMPOS.forEach(c=>{ const el=$(c); if(el) d[c]=el.value; });
+    localStorage.setItem(MEM_CHAVE, JSON.stringify(d));
+  }catch(e){}
+}
+function memApaga(){
+  try{ localStorage.removeItem(MEM_CHAVE); }catch(e){}
+  MEM_CAMPOS.forEach(c=>{
+    const el=$(c);
+    if(!el) return;
+    const P=PARCEIRAS[S.parceira];                 // preserva o que vem do link da parceira
+    if(P && c==="razao" && P.razao) return;
+    if(P && c==="cnpj"  && P.cnpj)  return;
+    el.value="";
+  });
+  $("lembrar").querySelector("input").checked=false;
+  $("lembrar").classList.remove("sel");
+  $("avisoSalvo").innerHTML="";
+}
+
+function memAplica(){
+  const d=memLe();
+  if(!d) return;
+  MEM_CAMPOS.forEach(c=>{ const el=$(c); if(el && !el.value && d[c]) el.value=d[c]; });
+  const cx=$("lembrar").querySelector("input");
+  cx.checked=true; $("lembrar").classList.add("sel");
+  $("avisoSalvo").innerHTML =
+    '<div class="aviso" style="margin-top:12px">Preenchemos com os dados do seu último acesso neste aparelho. '
+    + 'Confira antes de continuar. <a href="#" id="limparMem" style="color:var(--erro);font-weight:700">Apagar dados salvos</a></div>';
+  $("limparMem").onclick=e=>{ e.preventDefault(); memApaga(); };
+}
+memAplica();
+$("lembrar").querySelector("input").addEventListener("change",function(){
+  $("lembrar").classList.toggle("sel",this.checked);
+  if(!this.checked){ try{ localStorage.removeItem(MEM_CHAVE); }catch(e){} $("avisoSalvo").innerHTML=""; }
+});
+
 /* declarações da etapa 4 */
 ["d1","d2","d3","d4"].forEach(id=>{
   const l=$(id); l.querySelector("input").addEventListener("change",e=>l.classList.toggle("sel",e.target.checked));
@@ -736,7 +800,10 @@ function preenchido(ids){
 $("btVoltar").onclick = ()=>{ if(etapa>1){etapa--;mostra(etapa);} };
 
 $("btAvancar").onclick = async ()=>{
-  if(etapa===1){ if(!preenchido(["razao","cnpj","unidade","resp","cargo","fone","email"]))return; }
+  if(etapa===1){
+    if(!preenchido(["razao","cnpj","unidade","resp","cargo","fone","email"]))return;
+    memGrava();
+  }
   if(etapa===2){ if(!preenchido(["funcao","qtd","inicio","descricao"]))return; }
   if(etapa===3){
     const m=[...document.querySelectorAll('#listaCond input:checked')];
@@ -927,18 +994,18 @@ function nomeParceira(){
   const P=PARCEIRAS[S.parceira]; return P ? P.nome : ($("razao").value || "").trim();
 }
 
-/* Descobre a central certa: pelo grupo da atividade escolhida; não havendo
-   atividade ainda, pelo segmento da parceira do link. Sem os dois, retorna null. */
+/* Descobre a central certa.
+   1º) a central da parceira — vale para toda contratação dela, qualquer atividade;
+   2º) sem parceira identificada, cai no grupo da atividade escolhida;
+   3º) sem os dois, retorna null e o portal oferece as duas centrais.        */
 function centralDaVez(){
-  const sel=$("funcao"), op=sel.selectedOptions[0];
+  const P=PARCEIRAS[S.parceira];
+  if(P && CENTRAIS[P.central]) return P.central;
+
+  const op=$("funcao").selectedOptions[0];
   if(op && op.parentElement && op.parentElement.tagName==="OPTGROUP"){
     const c=ROTA_CENTRAL[op.parentElement.label];
     if(c) return c;
-  }
-  const P=PARCEIRAS[S.parceira];
-  if(P && P.segmentos && P.segmentos.length){
-    const rotas=[...new Set(P.segmentos.map(s=>ROTA_CENTRAL[s]).filter(Boolean))];
-    if(rotas.length===1) return rotas[0];
   }
   return null;
 }

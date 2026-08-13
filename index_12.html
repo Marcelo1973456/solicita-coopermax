@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COOPERMAX · Solicitação de Atividade Cooperativa</title>
+<style>
+:root{
+  --turq:#28B0BC; --turq-esc:#17727C; --turq-cl:#E6F5F7;
+  --tinta:#2E3436; --tinta-md:#6B7477; --linha:#DCE3E4; --fundo:#F6F8F8;
+  --ok:#1B8A5A; --alerta:#B26A00; --erro:#B3261E;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color:var(--tinta);background:var(--fundo);padding-bottom:96px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+header{background:linear-gradient(160deg,var(--turq) 0%,var(--turq-esc) 100%);color:#fff;padding:22px 0 26px;text-align:center}
+.logo{width:56px;height:56px;margin:0 auto 8px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px}
+.logo img{max-width:100%;max-height:100%;object-fit:contain}
+header h1{font-size:19px;font-weight:700;letter-spacing:.2px}
+header p{font-size:13px;opacity:.9;margin-top:3px}
+
+.steps{display:flex;gap:6px;justify-content:center;margin-top:16px}
+.dot{width:26px;height:4px;border-radius:3px;background:rgba(255,255,255,.35);transition:.25s}
+.dot.on{background:#fff}
+
+section.card{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:18px 16px;margin-top:16px}
+h2{font-size:15px;font-weight:700;color:var(--turq-esc);margin-bottom:4px}
+h2 .n{display:inline-block;background:var(--turq-cl);color:var(--turq-esc);border-radius:6px;
+  padding:1px 7px;font-size:12px;margin-right:7px;vertical-align:1px}
+.sub{font-size:13px;color:var(--tinta-md);margin-bottom:14px}
+
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--linha);border-radius:9px;font-size:16px;
+  font-family:inherit;color:var(--tinta);background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--turq);box-shadow:0 0 0 3px rgba(40,176,188,.15)}
+textarea{min-height:74px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.hint{font-size:12px;color:var(--tinta-md);margin-top:4px}
+
+.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--linha);
+  border-radius:9px;margin-bottom:7px;cursor:pointer;background:#fff;transition:.15s}
+.chk:active{transform:scale(.995)}
+.chk.sel{border-color:var(--turq);background:var(--turq-cl)}
+.chk input{width:20px;height:20px;accent-color:var(--turq-esc);flex:0 0 auto;margin-top:1px}
+.chk span{font-size:14px;line-height:1.4}
+.grupo{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--tinta-md);margin:16px 0 8px}
+
+.aviso{border-left:4px solid var(--turq);background:#FAFCFC;padding:11px 13px;border-radius:0 9px 9px 0;
+  font-size:13px;color:var(--tinta-md);margin:12px 0}
+.aviso b{color:var(--tinta)}
+
+.nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:20}
+.nav .wrap{display:flex;gap:10px;width:100%;max-width:720px;margin:0 auto;padding:0}
+button{flex:1;padding:14px;border:none;border-radius:11px;font-size:15px;font-weight:700;
+  font-family:inherit;cursor:pointer;transition:.15s}
+.btn-p{background:var(--turq-esc);color:#fff}
+.btn-p:active{background:#125D66}
+.btn-s{background:#fff;color:var(--turq-esc);border:1.5px solid var(--linha)}
+.btn-p:disabled{background:#B9C6C8;cursor:not-allowed}
+
+.hide{display:none}
+.oculto{display:none!important}
+
+/* resumo / protocolo */
+.proto{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:20px 18px;margin-top:16px}
+.selo{text-align:center;padding:16px 0 10px}
+.selo .ic{width:52px;height:52px;border-radius:50%;background:#E8F6EF;color:var(--ok);
+  display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px}
+.selo h3{font-size:17px}
+.selo p{font-size:13px;color:var(--tinta-md);margin-top:4px}
+dl{margin-top:14px;border-top:1px solid var(--linha)}
+dl div{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--linha);font-size:13.5px}
+dt{flex:0 0 40%;color:var(--tinta-md);font-weight:600}
+dd{flex:1}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{background:var(--turq-cl);color:var(--turq-esc);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-all}
+
+/* painel interno */
+.interno{border:1.5px solid var(--turq-esc);border-radius:14px;padding:16px;margin-top:16px;background:#fff}
+.interno h3{font-size:14px;color:var(--turq-esc);margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th{background:var(--turq-esc);color:#fff;text-align:left;padding:8px;font-size:12px;font-weight:700}
+td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
+.pct{font-weight:800;color:var(--turq-esc);white-space:nowrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.b-quant{background:#FFF3E0;color:var(--alerta)}
+.b-qual{background:#E8F6EF;color:var(--ok)}
+
+.btn-zap{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  margin-top:14px;padding:13px;border-radius:11px;background:#1D8C5A;color:#fff;
+  font-size:14.5px;font-weight:700;text-decoration:none;border:none}
+.btn-zap .zi{font-size:17px;line-height:1}
+.btn-zap:active{background:#166F47}
+
+/* guia da relação cooperativa */
+.btn-guia{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;
+  border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:600;margin-top:12px;
+  display:inline-flex;align-items:center;gap:6px;width:auto;flex:none;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(20,40,42,.55);z-index:50;display:flex;
+  align-items:flex-end;justify-content:center}
+.overlay.hide{display:none}
+.folha{background:#fff;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;
+  border-radius:18px 18px 0 0;padding:0 0 30px}
+.folha-top{position:sticky;top:0;background:#17727C;color:#fff;padding:16px 18px;
+  border-radius:18px 18px 0 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.folha-top h3{font-size:16px;font-weight:700}
+.folha-top p{font-size:12px;opacity:.9;margin-top:2px}
+.fechar{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;
+  border-radius:50%;font-size:19px;line-height:1;flex:0 0 auto;cursor:pointer;padding:0}
+.folha-corpo{padding:16px 18px}
+.folha-corpo h4{font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;
+  padding-bottom:5px;border-bottom:2px solid var(--turq)}
+.folha-corpo h4.pode{color:var(--ok);border-color:var(--ok)}
+.folha-corpo h4.naopode{color:var(--erro);border-color:var(--erro)}
+.li{display:flex;gap:9px;font-size:14px;margin-bottom:9px;line-height:1.45}
+.li .mk{flex:0 0 auto;font-weight:800;width:15px}
+.li.s .mk{color:var(--ok)} .li.n .mk{color:var(--erro)}
+.dia{border:1px solid var(--linha);border-radius:10px;overflow:hidden;margin-top:8px}
+.dia div.l{display:flex;border-bottom:1px solid var(--linha)}
+.dia div.l:last-child{border-bottom:none}
+.dia .q{flex:0 0 42%;background:var(--turq-cl);padding:10px 11px;font-size:13px;font-weight:600;color:var(--turq-esc)}
+.dia .r{flex:1;padding:10px 11px;font-size:13px}
+
+@media print{
+  .btn-guia{display:none!important}
+  .overlay{position:static;background:none;display:block}
+  .folha{max-height:none;overflow:visible;border-radius:0;max-width:100%}
+  .folha-top{position:static;background:#fff!important;color:var(--tinta)!important;
+    border-bottom:3px solid var(--turq);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .fechar{display:none}
+  .dia .q{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media print{
+  body{background:#fff;padding:0}
+  header{background:#fff!important;color:var(--tinta)!important;border-bottom:3px solid var(--turq);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .logo{border:1px solid var(--turq);color:var(--turq-esc)}
+  .nav,.steps,.noprint{display:none!important}
+  section.card,.proto,.interno{border:1px solid #ccc;page-break-inside:avoid;margin-top:10px}
+  th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo" id="marca"><img src="data:image/jpeg;base64,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" alt="COOPERMAX"></div>
+    <h1>Solicitação de Atividade Cooperativa</h1>
+    <p>COOPERMAX · Cooperativa de Trabalho Multiprofissionais · Aracaju/SE</p>
+    <button class="btn-guia noprint" id="btGuia">⚖  Relação com o cooperado — o que pode e o que não pode</button>
+    <div class="steps noprint">
+      <div class="dot on" data-d="1"></div><div class="dot" data-d="2"></div>
+      <div class="dot" data-d="3"></div><div class="dot" data-d="4"></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ETAPA 1 -->
+<div id="e1">
+  <section class="card">
+    <h2><span class="n">1</span>Quem está solicitando</h2>
+    <p class="sub">Dados da empresa contratante e do responsável pela solicitação.</p>
+    <label>Razão social *</label><input type="text" id="razao" placeholder="Ex.: Petrox Indústria Ltda.">
+    <label>CNPJ *</label><input type="text" id="cnpj" inputmode="numeric" placeholder="00.000.000/0001-00">
+    <label>Unidade / frente de serviço *</label><input type="text" id="unidade" placeholder="Ex.: Unidade Industrial — Área 200">
+    <div class="row">
+      <div><label>Responsável *</label><input type="text" id="resp" placeholder="Nome completo"></div>
+      <div><label>Cargo *</label><input type="text" id="cargo" placeholder="Ex.: Eng. de Manutenção"></div>
+    </div>
+    <div class="row">
+      <div><label>Telefone *</label><input type="tel" id="fone" placeholder="(79) 90000-0000"></div>
+      <div><label>E-mail *</label><input type="email" id="email" placeholder="nome@empresa.com.br"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ETAPA 2 -->
+<div id="e2" class="hide">
+  <section class="card">
+    <h2><span class="n">2</span>Qual atividade você precisa</h2>
+    <p class="sub">Descreva por entregas e resultado, não por rotina de horários.</p>
+    <label>Atividade / função *</label>
+    <select id="funcao">
+      <option value="">Selecione…</option>
+      <optgroup label="Construção e manutenção">
+        <option>Soldador</option><option>Pedreiro</option><option>Servente de obras</option>
+        <option>Carpinteiro</option><option>Armador</option><option>Pintor</option>
+        <option>Betoneiro</option><option>Auxiliar de manutenção predial</option>
+        <option>Almoxarife</option><option>Mestre de obras</option>
+      </optgroup>
+      <optgroup label="Alimentação">
+        <option>Auxiliar de serviços de alimentação</option><option>Cozinheiro</option>
+        <option>Atendente de lanchonete</option><option>Auxiliar de padaria</option>
+      </optgroup>
+      <optgroup label="Saúde">
+        <option>Técnico de enfermagem</option><option>Enfermeiro</option>
+        <option>Técnico de laboratório</option><option>Técnico de radiologia</option>
+        <option>Atendente de consultório</option><option>Cuidador de idoso</option>
+      </optgroup>
+      <optgroup label="Serviços gerais e condomínio">
+        <option>Auxiliar de serviços gerais</option><option>Porteiro</option>
+        <option>Rondista</option><option>Recepcionista</option>
+      </optgroup>
+      <optgroup label="Administrativo">
+        <option>Auxiliar administrativo</option><option>Operador de telemarketing</option>
+        <option>Analista de licitação</option><option>Motorista</option>
+      </optgroup>
+      <option value="OUTRA">Outra — descrever abaixo</option>
+    </select>
+    <div class="row">
+      <div><label>Nº de cooperados *</label><input type="number" id="qtd" min="1" value="1"></div>
+      <div><label>Início previsto *</label><input type="date" id="inicio"></div>
+    </div>
+    <label>Descrição do serviço *</label>
+    <textarea id="descricao" placeholder="O que será executado e qual o resultado esperado."></textarea>
+    <label>Qualificação exigida</label>
+    <textarea id="qualif" placeholder="Certificações, NRs, registro de classe, qualificação de soldagem, CNH."></textarea>
+    <div class="row">
+      <div><label>Regime</label><select id="regime"><option>Diurno</option><option>Noturno</option><option>Misto</option></select></div>
+      <div><label>Escala</label><select id="escala"><option>5x2</option><option>6x1</option><option>12x36</option><option>Por obra</option></select></div>
+    </div>
+    <label>Horas mensais estimadas</label><input type="number" id="horas" placeholder="Ex.: 176">
+  </section>
+</div>
+
+<!-- ETAPA 3 -->
+<div id="e3" class="hide">
+  <section class="card">
+    <h2><span class="n">3</span>Condições da frente de serviço</h2>
+    <p class="sub">Marque tudo que existe no local onde a atividade será executada.</p>
+    <div id="especificas"></div>
+    <div class="aviso">
+      <b>Por que perguntamos.</b> O art. 9º da Lei nº 12.690/2012 estabelece responsabilidade
+      solidária da contratante em saúde e segurança do trabalho. Estas informações permitem à
+      COOPERMAX qualificar o cooperado corretamente e garantir as condições legais de atuação.
+    </div>
+    <div id="listaCond"></div>
+    <label>Agentes químicos — especificar</label>
+    <input type="text" id="quimicos" placeholder="Solventes, tintas, ácidos…">
+    <label>Proteção coletiva existente</label>
+    <select id="epc" multiple size="5" style="height:auto">
+      <option>Exaustão localizada</option><option>Ventilação geral</option>
+      <option>Biombos / anteparos</option><option>Detecção de gases</option><option>Nenhuma</option>
+    </select>
+    <p class="hint">Toque segurando para marcar mais de uma.</p>
+    <div class="grupo">Documentos de segurança do local</div>
+    <label>PGR e LTCAT</label>
+    <select id="pgr"><option>Disponíveis — serão enviados</option><option>Disponíveis mediante solicitação</option><option>Não existem</option></select>
+    <label>Laudo de insalubridade / periculosidade do posto</label>
+    <select id="laudo"><option>Existe — será enviado</option><option>Não existe</option></select>
+    <label>Permissão de Trabalho (PT)</label>
+    <select id="pt"><option>Não aplicável</option><option>Aplicável — emitida pela contratante</option></select>
+    <label>Responsável técnico de SST da contratante</label>
+    <input type="text" id="rtsst" placeholder="Nome e registro profissional">
+  </section>
+</div>
+
+<!-- ETAPA 4 -->
+<div id="e4" class="hide">
+  <section class="card">
+    <h2><span class="n">4</span>Confirmação e assinatura</h2>
+    <p class="sub">Leia as condições da relação cooperativa e confirme os dados.</p>
+    <div class="aviso">
+      <b>A CONTRATANTE define</b> o que precisa ser executado, o padrão técnico, o prazo e as
+      condições de segurança do ambiente, e aceita ou recusa tecnicamente o resultado.<br><br>
+      <b>A COOPERMAX organiza</b> quem executa, a escala e a reposição, a qualificação e a
+      documentação do cooperado, sua conduta e substituição, e define a retirada, os adicionais
+      e os recolhimentos.
+    </div>
+    <label class="chk" id="d1"><input type="checkbox"><span>Declaro verdadeiras as informações prestadas, em especial as condições assinaladas na etapa 3.</span></label>
+    <label class="chk" id="d2"><input type="checkbox"><span>Comprometo-me a não efetuar pagamento direto ao cooperado, a qualquer título.</span></label>
+    <label class="chk" id="d3"><input type="checkbox"><span>Comprometo-me a não exercer poder diretivo ou disciplinar sobre a pessoa do cooperado, dirigindo toda demanda operacional à coordenação da COOPERMAX. Permanece legítima a fiscalização do resultado e da qualidade técnica do serviço.</span></label>
+    <label class="chk" id="d4"><input type="checkbox"><span>Comprometo-me a comunicar à COOPERMAX, em até 24 horas, qualquer acidente ou incidente envolvendo cooperado.</span></label>
+    <div class="grupo">Assinatura eletrônica</div>
+    <label>Nome completo de quem assina *</label><input type="text" id="assNome" placeholder="Como consta no documento">
+    <label>CPF *</label><input type="text" id="assCpf" inputmode="numeric" placeholder="000.000.000-00">
+    <p class="hint">O aceite eletrônico é registrado com data, hora e código de verificação do
+      conteúdo, e é admitido como válido por ambas as partes nos termos do art. 10, §2º da
+      MP nº 2.200-2/2001.</p>
+  </section>
+</div>
+
+<!-- PROTOCOLO -->
+<div id="e5" class="hide">
+  <div class="proto">
+    <div class="selo">
+      <div class="ic">✓</div>
+      <h3>Solicitação registrada</h3>
+      <p>A COOPERMAX retornará com o enquadramento técnico e os valores de referência.</p>
+    </div>
+    <dl id="resumo"></dl>
+    <div class="grupo">Condições declaradas</div>
+    <div class="tags" id="tagsCond"></div>
+    <div class="grupo">Aceite eletrônico</div>
+    <dl id="aceite"></dl>
+    <a class="btn-zap noprint" id="zapProto" target="_blank" rel="noopener">
+      <span class="zi">✆</span> Falar com a Central no WhatsApp</a>
+  </div>
+
+  <div class="interno hide" id="painel">
+    <h3>APURAÇÃO TÉCNICA — USO INTERNO COOPERMAX</h3>
+    <p class="sub">Não integra a via da contratante. Matriz de enquadramento v3.0.</p>
+    <div id="apuracao"></div>
+  </div>
+</div>
+
+</div>
+
+<!-- GUIA DA RELAÇÃO COOPERATIVA -->
+<div class="overlay hide" id="guia">
+  <div class="folha">
+    <div class="folha-top">
+      <div>
+        <h3>Guia da Relação Cooperativa</h3>
+        <p>O que pode e o que não pode na convivência com o cooperado COOPERMAX</p>
+      </div>
+      <button class="fechar" id="fecharGuia">×</button>
+    </div>
+    <div class="folha-corpo">
+      <div class="aviso" style="margin-top:4px">
+        <b>Em uma linha.</b> O cooperado não é seu empregado nem funcionário de empresa
+        terceirizada — ele é sócio da COOPERMAX e presta o serviço com autonomia técnica.
+        Você contrata um <b>resultado</b>; a cooperativa organiza <b>quem</b> entrega e <b>como</b>.
+      </div>
+
+      <h4 class="pode">O que a contratante PODE — e deve</h4>
+      <div class="li s"><span class="mk">✓</span><span>Definir o que precisa ser executado, o padrão técnico exigido e o prazo de entrega.</span></div>
+      <div class="li s"><span class="mk">✓</span><span>Fiscalizar o resultado e <b>recusar tecnicamente</b> o serviço que não atenda ao padrão contratado.</span></div>
+      <div class="li s"><span class="mk">✓</span><span>Exigir o cumprimento integral das normas de segurança do seu ambiente, o uso de EPI e a participação na integração.</span></div>
+      <div class="li s"><span class="mk">✓</span><span>Determinar o afastamento imediato de quem descumprir norma de segurança ou criar risco grave — comunicando a coordenação em seguida.</span></div>
+      <div class="li s"><span class="mk">✓</span><span>Solicitar a substituição de um cooperado, por escrito, à coordenação da COOPERMAX.</span></div>
+      <div class="li s"><span class="mk">✓</span><span>Definir a janela operacional em que o serviço precisa acontecer e pedir relatório de produção.</span></div>
+
+      <h4 class="naopode">O que a contratante NÃO pode</h4>
+      <div class="li n"><span class="mk">✕</span><span><b>Pagar diretamente ao cooperado</b>, a qualquer título — nem adiantamento, nem ajuda, nem gratificação, nem “por fora”. Este é o item mais grave da lista.</span></div>
+      <div class="li n"><span class="mk">✕</span><span>Dar ordem direta sobre a pessoa do cooperado: advertir, suspender, ameaçar de dispensa ou aplicar qualquer punição.</span></div>
+      <div class="li n"><span class="mk">✕</span><span>Submeter o cooperado a controle de ponto, crachá de empregado ou uniforme sem a identificação da cooperativa.</span></div>
+      <div class="li n"><span class="mk">✕</span><span>Incluí-lo em organograma, quadro de pessoal, avaliação de desempenho ou processo seletivo interno.</span></div>
+      <div class="li n"><span class="mk">✕</span><span>Selecionar, convocar ou dispensar cooperado diretamente, sem passar pela coordenação.</span></div>
+      <div class="li n"><span class="mk">✕</span><span>Reter documento pessoal, exigir exclusividade ou impedir que ele atue em outra frente da cooperativa.</span></div>
+
+      <h4>No dia a dia — o caminho certo</h4>
+      <div class="dia">
+        <div class="l"><div class="q">O cooperado faltou</div><div class="r">Avise a coordenação. A reposição é obrigação da COOPERMAX, não sua.</div></div>
+        <div class="l"><div class="q">O serviço saiu errado</div><div class="r">Registre e comunique. Recusar tecnicamente o resultado é seu direito — corrigir a pessoa não é.</div></div>
+        <div class="l"><div class="q">Preciso mudar horário ou frente</div><div class="r">Fale com a coordenação. Ela reorganiza a escala e confirma com você.</div></div>
+        <div class="l"><div class="q">Quero elogiar o trabalho</div><div class="r">Mande para a coordenação. Entra no registro do cooperado e conta a favor dele.</div></div>
+        <div class="l"><div class="q">Quero advertir</div><div class="r">Não advirta. Relate por escrito à coordenação — quem trata conduta é a cooperativa.</div></div>
+        <div class="l"><div class="q">Ele pediu adiantamento</div><div class="r">Encaminhe à coordenação. Pagamento direto é a principal causa de reconhecimento de vínculo.</div></div>
+        <div class="l"><div class="q">Aconteceu um acidente</div><div class="r">Comunique em até 24 horas e preserve o local. A CAT é emitida pela COOPERMAX.</div></div>
+        <div class="l"><div class="q">Quero contratar como CLT</div><div class="r">É possível e legítimo. Converse antes com a coordenação — existe caminho formal, e contratar sem ele cria passivo para os dois lados.</div></div>
+      </div>
+
+      <h4>Por que isso protege você</h4>
+      <p style="font-size:14px;margin-bottom:10px">O art. 9º da Lei nº 12.690/2012 estabelece que a
+      contratante responde <b>solidariamente</b> pelo cumprimento das normas de saúde e segurança do
+      trabalho quando o serviço é prestado em seu estabelecimento. E, se a relação for descaracterizada
+      na Justiça, é a contratante que responde pelo vínculo — não a cooperativa.</p>
+      <p style="font-size:14px">Os pontos acima não são formalidade da COOPERMAX. São exatamente
+      o que separa uma contratação segura de um passivo trabalhista. Seguindo o caminho da
+      coordenação, sua operação corre igual — e a responsabilidade fica onde deve ficar.</p>
+
+      <div class="aviso" style="margin-top:16px">
+        <b>Centrais de atendimento COOPERMAX</b><br>
+        Toda demanda operacional, ocorrência ou dúvida sobre esta relação passa por aqui.<br><br>
+        <b>Obras e Serviços Gerais</b> · (79) 99650-3547<br>
+        <b>Saúde e Alimentação</b> · (79) 99682-1555
+      </div>
+      <div id="zapGuiaBox"></div>
+      <button class="btn-p noprint hide" style="width:100%;margin-top:10px" id="irFormulario">Solicitar uma atividade</button>
+      <button class="btn-s noprint" style="width:100%;margin-top:10px" id="imprimirGuia">Imprimir este guia</button>
+    </div>
+  </div>
+</div>
+
+<div class="nav noprint">
+  <div class="wrap">
+    <button class="btn-s hide" id="btVoltar">Voltar</button>
+    <button class="btn-p" id="btAvancar">Continuar</button>
+  </div>
+</div>
+
+<script>
+/* ===== CONFIGURAÇÃO ===== */
+// URL do webhook do fluxo n8n. Vazio = o protocolo é só impresso/salvo pelo contratante.
+const WEBHOOK = "";
+
+/* Centrais de atendimento da COOPERMAX — formato internacional, só números.
+   A solicitação é encaminhada automaticamente para a central da área da atividade. */
+const CENTRAIS = {
+  obras: { nome:"Obras e Serviços Gerais", fone:"5579996503547", exibe:"(79) 99650-3547" },
+  saude: { nome:"Saúde e Alimentação",     fone:"5579996821555", exibe:"(79) 99682-1555" }
+};
+
+/* Cada grupo de atividades aponta para a central que o atende.
+   Os rótulos abaixo são os mesmos dos grupos da lista de atividades. */
+const ROTA_CENTRAL = {
+  "Construção e manutenção":        "obras",
+  "Serviços gerais e condomínio":   "obras",
+  "Administrativo":                 "obras",
+  "Alimentação":                    "saude",
+  "Saúde":                          "saude"
+};
+const CENTRAL_PADRAO = "obras";
+
+/* ===== MATRIZ DE ENQUADRAMENTO ===== */
+const COND = [
+  {g:"Risco de acidente", itens:[
+    {id:"inflam", t:"Inflamáveis ou combustíveis na área",            enq:"PERIC", pct:30, base:"NR-16, Anexo 2",  nat:"qual"},
+    {id:"areacl", t:"Área classificada / atmosfera explosiva",         enq:"PERIC", pct:30, base:"NR-16, Anexo 2",  nat:"qual"},
+    {id:"quente", t:"Serviço a quente (solda, corte, esmerilhamento)", enq:null,    pct:0,  base:"—",               nat:"qual"},
+    {id:"explos", t:"Explosivos",                                      enq:"PERIC", pct:30, base:"NR-16, Anexo 1",  nat:"qual"},
+    {id:"eletri", t:"Instalações elétricas energizadas ou SEP",        enq:"PERIC", pct:30, base:"NR-16, Anexo 4",  nat:"qual"},
+    {id:"confin", t:"Espaço confinado",                                enq:null,    pct:0,  base:"NR-33",           nat:"qual"},
+    {id:"altura", t:"Trabalho em altura acima de 2 m",                 enq:null,    pct:0,  base:"NR-35",           nat:"qual"},
+    {id:"moto",   t:"Uso habitual de motocicleta no serviço",          enq:"PERIC", pct:30, base:"NR-16, Anexo 5",  nat:"qual"},
+    {id:"segpat", t:"Atividade de segurança patrimonial",              enq:"PERIC", pct:30, base:"NR-16, Anexo 3",  nat:"qual", obs:"Só enquadra se por empresa autorizada pelo Min. da Justiça. Porteiro e rondista de condomínio não se enquadram."},
+    {id:"radion", t:"Radiação ionizante (raios X, radioativos)",       enq:"PERIC", pct:30, base:"NR-16, Port. 3.393/87", nat:"qual"}
+  ]},
+  {g:"Agentes biológicos", itens:[
+    {id:"pacien", t:"Contato com pacientes ou material biológico",     enq:"INSAL", pct:20, base:"NR-15, Anexo 14", nat:"qual"},
+    {id:"isolam", t:"Contato com paciente em isolamento infectocontagioso", enq:"INSAL", pct:40, base:"NR-15, Anexo 14", nat:"qual"},
+    {id:"sanita", t:"Limpeza de sanitário de uso público ou coletivo", enq:"INSAL", pct:40, base:"NR-15, Anexo 14 + Súmula 448 do TST", nat:"qual", obs:"Exige uso público ou coletivo de grande circulação."},
+    {id:"lixour", t:"Coleta de lixo urbano",                           enq:"INSAL", pct:40, base:"NR-15, Anexo 14", nat:"qual"},
+    {id:"esgoto", t:"Esgoto — galerias, tanques, fossas",              enq:"INSAL", pct:40, base:"NR-15, Anexo 14", nat:"qual"}
+  ]},
+  {g:"Agentes físicos e químicos", itens:[
+    {id:"calor",  t:"Calor — forno, caldeira, cozinha industrial",     enq:"INSAL", pct:20, base:"NR-15, Anexo 3",  nat:"quant"},
+    {id:"frio",   t:"Frio — câmara fria, ambiente refrigerado",        enq:"INSAL", pct:20, base:"NR-15, Anexo 9",  nat:"qual"},
+    {id:"umidad", t:"Umidade — locais alagados ou encharcados",        enq:"INSAL", pct:20, base:"NR-15, Anexo 10", nat:"qual"},
+    {id:"ruido",  t:"Ruído elevado (exige protetor auricular)",        enq:"INSAL", pct:20, base:"NR-15, Anexo 1",  nat:"quant"},
+    {id:"poeira", t:"Poeira mineral — sílica, cimento, asbesto",       enq:"INSAL", pct:40, base:"NR-15, Anexo 12", nat:"quant"},
+    {id:"fumos",  t:"Fumos metálicos — soldagem",                      enq:"INSAL", pct:40, base:"NR-15, Anexo 12", nat:"quant", obs:"Manganês. Limite 1 mg/m³ para fumos. EPI não afasta o enquadramento quantitativo."},
+    {id:"uvsold", t:"Radiação do arco de solda (ultravioleta)",        enq:"INSAL", pct:20, base:"NR-15, Anexo 7",  nat:"qual", obs:"Proteção adequada afasta o enquadramento."},
+    {id:"quimic", t:"Produtos químicos — solventes, tintas, ácidos",   enq:"INSAL", pct:20, base:"NR-15, Anexos 11 e 13", nat:"quant"},
+    {id:"vibrac", t:"Vibração — ferramenta pneumática ou equipamento pesado", enq:"INSAL", pct:20, base:"NR-15, Anexo 8", nat:"quant"}
+  ]},
+  {g:"", itens:[
+    {id:"nenhum", t:"Nenhuma das condições acima", enq:null, pct:0, base:"—", nat:"qual"}
+  ]}
+];
+
+/* ===== CADASTRO DE PARCEIRAS =====================================================
+   Acesse com ?c=apelido — ex.: .../solicita-coopermax/?c=petrox
+   Para incluir uma parceira nova, copie um bloco inteiro e troque o apelido e os dados.
+
+   ATENÇÃO — LEIA ANTES DE PREENCHER
+   Esta página é pública: TUDO que estiver aqui pode ser lido por qualquer pessoa que
+   abra o link e veja o código-fonte. Por isso este cadastro aceita apenas dados
+   institucionais da empresa.
+
+   NUNCA cadastre aqui: nome, telefone, e-mail ou CPF de pessoa física, valores
+   contratados, taxa administrativa ou qualquer informação comercial.
+   O responsável preenche os próprios dados no formulário — e é isso que dá
+   validade ao aceite eletrônico dele no final. (LGPD, Lei nº 13.709/2018.)
+
+   Campos aceitos:
+     nome      — como aparece no selo da tela
+     razao     — razão social, preenche o campo do formulário
+     cnpj      — dado público de empresa
+     unidades  — lista de frentes de serviço; havendo itens, vira lista suspensa
+     segmentos — filtra as atividades oferecidas àquela parceira. Use exatamente
+                 um destes rótulos: "Construção e manutenção" · "Alimentação" ·
+                 "Saúde" · "Serviços gerais e condomínio" · "Administrativo"
+   ================================================================================= */
+const PARCEIRAS = {
+  petrox:{
+    nome:"Petrox",
+    razao:"Petrox",
+    cnpj:"",
+    unidades:[],
+    segmentos:["Construção e manutenção"]
+  },
+  gsi:{
+    nome:"GSI",
+    razao:"GSI",
+    cnpj:"",
+    unidades:[],
+    segmentos:["Alimentação","Serviços gerais e condomínio"]
+  },
+  uniclin:{
+    nome:"UNICLIN",
+    razao:"UNICLIN",
+    cnpj:"",
+    unidades:[],
+    segmentos:["Saúde"]
+  }
+};
+
+/* Texto institucional do selo. O telefone não entra aqui: cada área tem a sua central,
+   e o botão de WhatsApp já leva para a correta. */
+const COORDENACAO = "Coordenação COOPERMAX";
+
+/* ===== PERFIL POR ATIVIDADE =====
+   n     = cooperados na carteira (matriz jun/2026)
+   hoje  = adicional praticado hoje: número, 0 (não há) ou null (não definido)
+   sug   = condições típicas pré-assinaladas
+   perg  = perguntas-gatilho; "Sim" assinala a condição indicada           */
+const CARGOS = {
+  "Soldador":{n:5,hoje:null,sug:["fumos","uvsold","ruido"],perg:[
+    {q:"A solda é executada em área com inflamáveis ou área classificada?",a:"inflam"},
+    {q:"Há entrada em espaço confinado (tanque, vaso, tubulação)?",a:"confin"}]},
+  "Auxiliar de serviços gerais":{n:32,hoje:20,sug:["quimic"],perg:[
+    {q:"Higieniza sanitário de uso público ou coletivo de grande circulação (shopping, escola, terminal, hospital)?",a:"sanita"},
+    {q:"Faz coleta de lixo urbano?",a:"lixour"},
+    {q:"Limpa área de saúde com contato com material biológico?",a:"pacien"}]},
+  "Encarregado de serviços gerais":{n:1,hoje:20,sug:[],perg:[
+    {q:"Executa higienização de sanitário de uso público ou coletivo?",a:"sanita"}]},
+  "Auxiliar de serviços de alimentação":{n:44,hoje:20,sug:[],perg:[
+    {q:"Trabalha habitualmente junto a fogão, forno ou chapa industrial?",a:"calor"},
+    {q:"Entra habitualmente em câmara fria?",a:"frio"},
+    {q:"Higieniza sanitário de uso público ou coletivo?",a:"sanita"}]},
+  "Cozinheiro":{n:3,hoje:null,sug:["calor"],perg:[
+    {q:"Entra habitualmente em câmara fria?",a:"frio"},
+    {q:"O ambiente tem exaustão adequada sobre a linha de cocção?",a:null}]},
+  "Auxiliar de padaria":{n:2,hoje:null,sug:[],perg:[
+    {q:"Trabalha junto ao forno por período habitual?",a:"calor"},
+    {q:"Entra habitualmente em câmara fria?",a:"frio"}]},
+  "Técnico de enfermagem":{n:12,hoje:20,sug:["pacien"],perg:[
+    {q:"Há contato com paciente em isolamento por doença infectocontagiosa?",a:"isolam"}]},
+  "Enfermeiro":{n:1,hoje:20,sug:["pacien"],perg:[
+    {q:"Há contato com paciente em isolamento por doença infectocontagiosa?",a:"isolam"}]},
+  "Técnico de laboratório":{n:4,hoje:20,sug:["pacien"],perg:[
+    {q:"Manipula material de paciente com doença infectocontagiosa?",a:"isolam"}]},
+  "Técnico de radiologia":{n:2,hoje:null,sug:["radion"],perg:[
+    {q:"Opera equipamento de raios X ou manipula substância radioativa?",a:"radion"}]},
+  "Cuidador de idoso":{n:2,hoje:null,sug:[],perg:[
+    {q:"Há contato com fluidos corporais, curativos ou higienização do assistido?",a:"pacien"}]},
+  "Atendente de consultório":{n:6,hoje:20,sug:[],perg:[
+    {q:"Há contato habitual com pacientes ou material biológico?",a:"pacien"}]},
+  "Recepcionista":{n:16,hoje:20,sug:[],perg:[
+    {q:"A recepção fica dentro de unidade de saúde, com contato habitual com pacientes?",a:"pacien"}]},
+  "Porteiro":{n:3,hoje:0,sug:[],perg:[
+    {q:"A atividade é de vigilância patrimonial prestada por empresa autorizada pelo Ministério da Justiça?",a:"segpat"}]},
+  "Rondista":{n:2,hoje:null,sug:[],perg:[
+    {q:"A atividade é de vigilância patrimonial prestada por empresa autorizada pelo Ministério da Justiça?",a:"segpat"}]},
+  "Auxiliar de manutenção predial":{n:1,hoje:null,sug:[],perg:[
+    {q:"Executa serviço em instalação elétrica energizada ou sistema elétrico de potência?",a:"eletri"},
+    {q:"Executa serviço em altura acima de 2 metros?",a:"altura"}]},
+  "Pintor":{n:2,hoje:20,sug:["quimic"],perg:[
+    {q:"Aplica tinta ou solvente em ambiente fechado ou sem ventilação?",a:null}]},
+  "Servente de obras":{n:17,hoje:null,sug:["poeira","ruido"],perg:[]},
+  "Pedreiro":{n:15,hoje:null,sug:["poeira","ruido"],perg:[]},
+  "Betoneiro":{n:2,hoje:null,sug:["poeira","ruido","vibrac"],perg:[]},
+  "Carpinteiro":{n:5,hoje:null,sug:["ruido"],perg:[]},
+  "Armador":{n:5,hoje:null,sug:["ruido"],perg:[]},
+  "Motorista":{n:1,hoje:0,sug:[],perg:[
+    {q:"Transporta inflamáveis ou combustíveis?",a:"inflam"},
+    {q:"Utiliza motocicleta como meio de trabalho?",a:"moto"}]}
+};
+
+/* ===== ESTADO ===== */
+let etapa = 1;
+const S = {};
+const $ = id => document.getElementById(id);
+
+/* monta o checklist */
+(function(){
+  const alvo = $("listaCond");
+  COND.forEach(bloco=>{
+    if(bloco.g){ const h=document.createElement("div"); h.className="grupo"; h.textContent=bloco.g; alvo.appendChild(h); }
+    bloco.itens.forEach(it=>{
+      const l=document.createElement("label"); l.className="chk";
+      l.innerHTML='<input type="checkbox" value="'+it.id+'"><span>'+it.t+'</span>';
+      l.querySelector("input").addEventListener("change",e=>{
+        l.classList.toggle("sel",e.target.checked);
+        if(it.id==="nenhum"&&e.target.checked){
+          alvo.querySelectorAll('input[type=checkbox]').forEach(c=>{
+            if(c.value!=="nenhum"&&c.checked){c.checked=false;c.closest(".chk").classList.remove("sel");}
+          });
+        } else if(e.target.checked){
+          const n=alvo.querySelector('input[value=nenhum]');
+          if(n.checked){n.checked=false;n.closest(".chk").classList.remove("sel");}
+        }
+      });
+      alvo.appendChild(l);
+    });
+  });
+})();
+
+/* ===== LEITURA DA URL =====
+   Aceita os dois formatos, para funcionar em qualquer hospedagem:
+     GitHub Pages →  /?c=petrox        ·  /?guia=1        ·  /?c=petrox&guia=1
+     Vercel       →  /petrox           ·  /guia           ·  /petrox/guia
+   O formato limpo depende do vercel.json que acompanha este arquivo.        */
+function trechosURL(){
+  return location.pathname.split("/").filter(Boolean)
+    .map(t=>t.replace(/\.html?$/i,"").toLowerCase());
+}
+function slugParceira(){
+  const q=(new URLSearchParams(location.search).get("c")||"").toLowerCase().trim();
+  if(PARCEIRAS[q]) return q;
+  const achado=trechosURL().find(t=>PARCEIRAS[t]);
+  return achado || "";
+}
+function ehModoGuia(){
+  if(new URLSearchParams(location.search).get("guia")==="1") return true;
+  return trechosURL().includes("guia");
+}
+
+/* ===== PARCEIRA PELA URL ===== */
+function aplicaParceira(){
+  const slug=slugParceira();
+  const P=PARCEIRAS[slug];
+  if(!P) return;
+  S.parceira=slug;
+
+  // Somente dados institucionais. Nome, cargo, telefone e e-mail são preenchidos
+  // pelo próprio responsável — é isso que sustenta o aceite eletrônico do final.
+  const põe=(id,v)=>{ if(v) $(id).value=v; };
+  põe("razao",P.razao); põe("cnpj",P.cnpj);
+
+  // unidades cadastradas viram lista suspensa
+  if(P.unidades && P.unidades.length){
+    const antigo=$("unidade"), sel=document.createElement("select");
+    sel.id="unidade";
+    sel.innerHTML='<option value="">Selecione a unidade…</option>'
+      + P.unidades.map(u=>'<option>'+u+'</option>').join('')
+      + '<option value="__outra">Outra — digitar</option>';
+    antigo.replaceWith(sel);
+    sel.addEventListener("change",()=>{
+      if(sel.value==="__outra"){
+        const inp=document.createElement("input");
+        inp.type="text"; inp.id="unidade"; inp.placeholder="Informe a unidade";
+        sel.replaceWith(inp); inp.focus();
+      }
+    });
+  }
+
+  // filtra as atividades pelos segmentos da parceira
+  if(P.segmentos && P.segmentos.length){
+    const listaCompleta=$("funcao").innerHTML;              // guarda para poder voltar
+    [...$("funcao").querySelectorAll("optgroup")].forEach(g=>{
+      if(!P.segmentos.includes(g.label)) g.remove();
+    });
+    const op=document.createElement("option");
+    op.value="__todas"; op.textContent="— ver todas as atividades —";
+    $("funcao").appendChild(op);
+    $("funcao").addEventListener("change",function(){
+      if(this.value==="__todas"){                            // restaura sem recarregar a página
+        this.innerHTML=listaCompleta; this.value="";
+        if(typeof montaEspecificas==="function") montaEspecificas();
+        if(typeof atualizaZap==="function") atualizaZap();
+      }
+    });
+  }
+
+  // selo de identificação
+  const selo=document.createElement("div");
+  selo.className="noprint";
+  selo.style.cssText="background:rgba(255,255,255,.16);border-radius:9px;padding:7px 12px;margin-top:12px;font-size:13px";
+  selo.innerHTML="Solicitação para <b>"+esc(P.nome)+"</b> · "+esc(COORDENACAO);
+  document.querySelector("header .wrap").insertBefore(selo,document.querySelector(".steps"));
+}
+aplicaParceira();
+
+/* perguntas específicas por atividade */
+function marca(id,liga){
+  const c=document.querySelector('#listaCond input[value='+id+']');
+  if(!c) return;
+  if(c.checked===liga) return;
+  c.checked=liga; c.closest(".chk").classList.toggle("sel",liga);
+  if(liga){ const n=document.querySelector('#listaCond input[value=nenhum]');
+    if(n.checked){n.checked=false;n.closest(".chk").classList.remove("sel");} }
+}
+
+function montaEspecificas(){
+  const alvo=$("especificas"); alvo.innerHTML="";
+  const perfil=CARGOS[$("funcao").value];
+  if(!perfil) return;
+  (perfil.sug||[]).forEach(id=>marca(id,true));
+  if(!perfil.perg.length && !(perfil.sug||[]).length) return;
+
+  const cx=document.createElement("div");
+  cx.style.cssText="border:1.5px solid var(--turq);border-radius:11px;padding:13px;margin-bottom:16px;background:#FAFDFD";
+  let html='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--turq-esc);margin-bottom:4px">Perguntas específicas — '+esc($("funcao").value)+'</div>';
+  if((perfil.sug||[]).length) html+='<p style="font-size:12.5px;color:var(--tinta-md);margin-bottom:10px">Já assinalamos abaixo as condições típicas desta atividade. Desmarque o que não existir na sua frente de serviço.</p>';
+  perfil.perg.forEach((pg,i)=>{
+    html+='<div style="margin-bottom:11px"><div style="font-size:14px;margin-bottom:6px">'+esc(pg.q)+'</div>'
+      + '<div style="display:flex;gap:8px">'
+      + '<button type="button" class="pg" data-i="'+i+'" data-v="1" style="flex:1;padding:9px;font-size:14px;background:#fff;color:var(--tinta);border:1.5px solid var(--linha);border-radius:8px">Sim</button>'
+      + '<button type="button" class="pg" data-i="'+i+'" data-v="0" style="flex:1;padding:9px;font-size:14px;background:#fff;color:var(--tinta);border:1.5px solid var(--linha);border-radius:8px">Não</button>'
+      + '</div></div>';
+  });
+  cx.innerHTML=html;
+  alvo.appendChild(cx);
+
+  cx.querySelectorAll("button.pg").forEach(bt=>{
+    bt.onclick=()=>{
+      const i=+bt.dataset.i, sim=bt.dataset.v==="1";
+      cx.querySelectorAll('button.pg[data-i="'+i+'"]').forEach(o=>{
+        o.style.background="#fff"; o.style.color="var(--tinta)"; o.style.borderColor="var(--linha)";
+      });
+      bt.style.background="var(--turq-esc)"; bt.style.color="#fff"; bt.style.borderColor="var(--turq-esc)";
+      const alvoId=perfil.perg[i].a;
+      if(alvoId) marca(alvoId,sim);
+      S.respostas=S.respostas||{}; S.respostas[perfil.perg[i].q]= sim?"Sim":"Não";
+    };
+  });
+}
+document.addEventListener("DOMContentLoaded",()=>{});
+$("funcao").addEventListener("change",montaEspecificas);
+
+/* declarações da etapa 4 */
+["d1","d2","d3","d4"].forEach(id=>{
+  const l=$(id); l.querySelector("input").addEventListener("change",e=>l.classList.toggle("sel",e.target.checked));
+});
+
+/* ===== NAVEGAÇÃO ===== */
+function mostra(n){
+  [1,2,3,4,5].forEach(i=>$("e"+i).classList.toggle("hide", i!==n));
+  document.querySelectorAll(".dot").forEach(d=>d.classList.toggle("on", +d.dataset.d<=Math.min(n,4)));
+  $("btVoltar").classList.toggle("hide", n===1||n===5);
+  $("btAvancar").textContent = n===4 ? "Assinar e enviar" : (n===5 ? "Imprimir / salvar em PDF" : "Continuar");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function preenchido(ids){
+  for(const id of ids){
+    const el=$(id);
+    if(!el.value.trim()){ el.focus(); el.style.borderColor="var(--erro)";
+      setTimeout(()=>el.style.borderColor="",1800); return false; }
+  }
+  return true;
+}
+
+$("btVoltar").onclick = ()=>{ if(etapa>1){etapa--;mostra(etapa);} };
+
+$("btAvancar").onclick = async ()=>{
+  if(etapa===1){ if(!preenchido(["razao","cnpj","unidade","resp","cargo","fone","email"]))return; }
+  if(etapa===2){ if(!preenchido(["funcao","qtd","inicio","descricao"]))return; }
+  if(etapa===3){
+    const m=[...document.querySelectorAll('#listaCond input:checked')];
+    if(!m.length){
+      if(!confirm("Nenhuma condição foi assinalada.\n\nConfirma que a frente de serviço não possui nenhuma das condições listadas?")) return;
+      marca("nenhum",true);
+    }
+  }
+  if(etapa===4){
+    if(!["d1","d2","d3","d4"].every(id=>$(id).querySelector("input").checked)){
+      alert("É necessário confirmar as quatro declarações."); return; }
+    if(!preenchido(["assNome","assCpf"]))return;
+    await finalizar(); etapa=5; mostra(5); return;
+  }
+  if(etapa===5){ window.print(); return; }
+  etapa++; mostra(etapa);
+};
+
+/* ===== MOTOR DE ENQUADRAMENTO ===== */
+function apurar(ids){
+  const todos=[];COND.forEach(b=>b.itens.forEach(i=>todos.push(i)));
+  const hits=ids.map(id=>todos.find(t=>t.id===id)).filter(x=>x&&x.enq);
+  if(!hits.length) return {lista:[],aplicado:null,potencial:null};
+  const ordenado=[...hits].sort((a,b)=>b.pct-a.pct);
+  // aplicável de imediato = maior percentual entre os de apuração qualitativa
+  const aplicado = ordenado.find(i=>i.nat==="qual") || null;
+  // potencial = quantitativo que supera o aplicado, condicionado a medição
+  const quant = ordenado.filter(i=>i.nat==="quant");
+  const potencial = quant.find(i=>!aplicado || i.pct>aplicado.pct) || null;
+  return {lista:ordenado, aplicado, potencial};
+}
+
+async function hash(txt){
+  try{
+    const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,24).toUpperCase();
+  }catch(e){
+    let h=0;for(let i=0;i<txt.length;i++){h=(h*31+txt.charCodeAt(i))>>>0;}
+    return ("CMX"+h.toString(16).toUpperCase()).padEnd(16,"0");
+  }
+}
+
+async function finalizar(){
+  const marc=[...document.querySelectorAll('#listaCond input:checked')].map(c=>c.value);
+  const todos=[];COND.forEach(b=>b.itens.forEach(i=>todos.push(i)));
+  const nomes=marc.map(id=>todos.find(t=>t.id===id).t);
+  const epc=[...$("epc").selectedOptions].map(o=>o.value);
+  const agora=new Date();
+
+  Object.assign(S,{
+    razao:$("razao").value, cnpj:$("cnpj").value, unidade:$("unidade").value,
+    resp:$("resp").value, cargo:$("cargo").value, fone:$("fone").value, email:$("email").value,
+    funcao:$("funcao").value, qtd:$("qtd").value, inicio:$("inicio").value,
+    descricao:$("descricao").value, qualif:$("qualif").value,
+    regime:$("regime").value, escala:$("escala").value, horas:$("horas").value,
+    condicoes:marc, condNomes:nomes, quimicos:$("quimicos").value, epc:epc,
+    pgr:$("pgr").value, laudo:$("laudo").value, pt:$("pt").value, rtsst:$("rtsst").value,
+    assNome:$("assNome").value, assCpf:$("assCpf").value,
+    dataHora:agora.toLocaleString("pt-BR")
+  });
+
+  S.protocolo = "CMX-" + agora.getFullYear() + String(agora.getMonth()+1).padStart(2,"0")
+              + String(agora.getDate()).padStart(2,"0") + "-"
+              + String(agora.getHours()).padStart(2,"0") + String(agora.getMinutes()).padStart(2,"0");
+  S.verificador = await hash(JSON.stringify(S));
+  S.apuracao = apurar(marc);
+
+  // via da contratante
+  $("resumo").innerHTML = [
+    ["Protocolo", S.protocolo],
+    ["Contratante", S.razao + " — " + S.cnpj],
+    ["Unidade", S.unidade],
+    ["Atividade", S.funcao + "  ·  " + S.qtd + " cooperado(s)"],
+    ["Início previsto", S.inicio ? S.inicio.split("-").reverse().join("/") : "—"],
+    ["Regime / escala", S.regime + " · " + S.escala + (S.horas ? " · " + S.horas + " h/mês" : "")],
+    ["Descrição", S.descricao],
+    ["Qualificação exigida", S.qualif || "—"],
+    ["Proteção coletiva", epc.length ? epc.join(", ") : "—"],
+    ["PGR / LTCAT", S.pgr],
+    ["Laudo do posto", S.laudo],
+    ["Permissão de Trabalho", S.pt],
+    ["RT de SST", S.rtsst || "—"]
+  ].map(([k,v])=>"<div><dt>"+k+"</dt><dd>"+esc(v)+"</dd></div>").join("");
+
+  $("tagsCond").innerHTML = nomes.map(n=>'<span class="tag">'+esc(n)+"</span>").join("")
+    + (S.quimicos ? '<span class="tag">Químicos: '+esc(S.quimicos)+"</span>" : "");
+
+  if(S.respostas && Object.keys(S.respostas).length){
+    const bl=document.createElement("div");
+    bl.innerHTML='<div class="grupo">Respostas específicas da atividade</div><dl>'
+      + Object.entries(S.respostas).map(([q,r])=>"<div><dt>"+esc(q)+"</dt><dd><b>"+r+"</b></dd></div>").join("")
+      + "</dl>";
+    $("tagsCond").after(bl);
+  }
+
+  $("aceite").innerHTML = [
+    ["Assinado por", S.assNome + " — " + S.cargo],
+    ["CPF", S.assCpf],
+    ["Data e hora", S.dataHora],
+    ["Código de verificação", '<span class="mono">' + S.verificador + "</span>"]
+  ].map(([k,v])=>"<div><dt>"+k+"</dt><dd>"+v+"</dd></div>").join("");
+
+  montaPainel();
+  atualizaZap();
+  enviar();
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
+
+function montaPainel(){
+  const a=S.apuracao;
+  const linhas=a.lista.map(i=>
+    "<tr><td>"+esc(i.t)+(i.obs?"<br><span style='font-size:11px;color:var(--tinta-md)'>"+esc(i.obs)+"</span>":"")
+    +"</td><td>"+esc(i.base)+"</td><td><span class='badge "+(i.nat==="quant"?"b-quant'>medição":"b-qual'>inspeção")
+    +"</span></td><td class='pct'>"+(i.enq==="PERIC"?"Peric. ":"Insal. ")+i.pct+"%</td></tr>").join("");
+  const ap=a.aplicado, pot=a.potencial;
+  let bloco = "";
+  if(!a.lista.length){
+    bloco += "<div class='aviso'><b>SEM ENQUADRAMENTO.</b> Nenhuma condição declarada gera "
+      + "insalubridade ou periculosidade. Registrar a atuação sem adicional.</div>";
+  } else if(ap){
+    bloco += "<div class='aviso' style='margin-top:12px'><b>APLICAR AGORA: "
+      + (ap.enq==="PERIC" ? "PERICULOSIDADE" : "INSALUBRIDADE") + " — " + ap.pct
+      + "% sobre a retirada.</b> " + esc(ap.base)
+      + ". Apuração qualitativa: decorre da constatação da condição, aplicável de imediato.</div>";
+  } else {
+    bloco += "<div class='aviso' style='margin-top:12px'><b>PENDENTE.</b> Todas as condições declaradas "
+      + "dependem de medição. Não fixar percentual sem laudo — registrar a atuação como pendente de apuração.</div>";
+  }
+  if(pot){
+    bloco += "<div class='aviso' style='border-left-color:var(--alerta)'><b>POTENCIAL DE ELEVAÇÃO: "
+      + (pot.enq==="PERIC" ? "periculosidade" : "insalubridade") + " " + pot.pct + "%</b> — "
+      + esc(pot.t) + " (" + esc(pot.base) + "). Apuração quantitativa: exige medição. "
+      + "Se confirmada, prevalece sobre o percentual acima por ser mais vantajosa ao cooperado. "
+      + "Solicitar laudo e manter cláusula de revisão em 30 dias.</div>";
+  }
+  // comparativo com o praticado hoje na carteira
+  const perfil = CARGOS[S.funcao];
+  if(perfil){
+    const hoje = perfil.hoje;
+    const alvo = pot ? pot.pct : (ap ? ap.pct : 0);
+    const rotHoje = hoje===null ? "não definido" : (hoje===0 ? "sem adicional" : hoje+"%");
+    let cor="var(--turq)", titulo="", corpo="";
+    if(hoje===null){
+      cor="var(--alerta)"; titulo="SEM DEFINIÇÃO NA CARTEIRA";
+      corpo="A matriz registra este cargo como “verificar”. Esta apuração passa a ser a referência — levar à Assembleia.";
+    } else if(alvo>hoje){
+      cor="var(--erro)"; titulo="DIVERGÊNCIA — PAGANDO A MENOS";
+      corpo="A carteira pratica <b>"+rotHoje+"</b> e a apuração indica <b>"+alvo+"%</b>. "
+        + "Revisar o enquadramento" + (perfil.n>1 ? " e verificar os demais <b>"+perfil.n+" cooperados</b> no mesmo cargo" : "") + ".";
+    } else if(alvo<hoje){
+      cor="var(--turq)"; titulo="APURADO ABAIXO DO PRATICADO";
+      corpo="A carteira pratica <b>"+rotHoje+"</b> e esta frente indica <b>"+alvo+"%</b>. "
+        + "Não reduzir sem laudo: o mesmo cargo pode ter postos com exposições distintas.";
+    } else {
+      cor="var(--ok)"; titulo="CONFORME";
+      corpo="A apuração confirma o percentual praticado na carteira (<b>"+rotHoje+"</b>).";
+    }
+    bloco += "<div class='aviso' style='border-left-color:"+cor+"'><b>"+titulo+".</b> "+corpo
+      + " <span style='font-size:11.5px'>Efetivo no cargo: "+perfil.n+" cooperado(s) — matriz jun/2026.</span></div>";
+  }
+  bloco += "<p style='font-size:12px;color:var(--tinta-md);margin-top:8px'>"
+      + "Insalubridade e periculosidade não se acumulam — aplica-se sempre a mais vantajosa ao cooperado. "
+      + "Base de cálculo: retirada do cooperado (art. 7º, VI, Lei 12.690/2012).</p>";
+  $("apuracao").innerHTML =
+    "<table><tr><th>Condição</th><th>Fundamento</th><th>Apuração</th><th>Grau</th></tr>"+linhas+"</table>" + bloco;
+}
+
+function enviar(){
+  const sel=document.querySelector("#e5 .selo p");
+  if(!WEBHOOK){
+    sel.innerHTML="Guarde este protocolo. Use <b>Imprimir / salvar em PDF</b> e envie à COOPERMAX.";
+    return;
+  }
+  sel.textContent="Enviando à COOPERMAX…";
+  fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(S)})
+    .then(r=>{ if(!r.ok) throw 0;
+      sel.innerHTML="Recebido pela COOPERMAX. O retorno com o enquadramento técnico e os valores de referência virá para <b>"+esc(S.email)+"</b>."; })
+    .catch(()=>{ sel.innerHTML="<b>Não foi possível enviar automaticamente.</b> Use <b>Imprimir / salvar em PDF</b> e encaminhe este protocolo à COOPERMAX."; });
+}
+
+/* ===== WHATSAPP DAS CENTRAIS — mensagem sempre identificando a origem ===== */
+function linkZap(chave,msg){
+  return "https://wa.me/"+CENTRAIS[chave].fone+"?text="+encodeURIComponent(msg);
+}
+
+function nomeParceira(){
+  const P=PARCEIRAS[S.parceira]; return P ? P.nome : ($("razao").value || "").trim();
+}
+
+/* Descobre a central certa: pelo grupo da atividade escolhida; não havendo
+   atividade ainda, pelo segmento da parceira do link. Sem os dois, retorna null. */
+function centralDaVez(){
+  const sel=$("funcao"), op=sel.selectedOptions[0];
+  if(op && op.parentElement && op.parentElement.tagName==="OPTGROUP"){
+    const c=ROTA_CENTRAL[op.parentElement.label];
+    if(c) return c;
+  }
+  const P=PARCEIRAS[S.parceira];
+  if(P && P.segmentos && P.segmentos.length){
+    const rotas=[...new Set(P.segmentos.map(s=>ROTA_CENTRAL[s]).filter(Boolean))];
+    if(rotas.length===1) return rotas[0];
+  }
+  return null;
+}
+
+function botaoZap(chave,rotulo,msg){
+  return '<a class="btn-zap noprint" target="_blank" rel="noopener" href="'
+    + linkZap(chave,msg) + '"><span class="zi">✆</span> ' + rotulo + '</a>';
+}
+
+function atualizaZap(){
+  const emp=nomeParceira();
+
+  const msgDuvida = c =>
+    "Olá, Central de " + CENTRAIS[c].nome + " da COOPERMAX."
+    + "\nEstou falando pelo *Portal de Solicitação de Atividade Cooperativa*."
+    + (emp ? "\nEmpresa: " + emp : "")
+    + "\n\nMinha dúvida é sobre:"
+    + "\n( ) a relação com o cooperado — o que pode e o que não pode"
+    + "\n( ) uma solicitação de atividade"
+    + "\n( ) outro assunto";
+
+  const msgProto = c =>
+    "Olá, Central de " + CENTRAIS[c].nome + " da COOPERMAX."
+    + "\n*Solicitação enviada pelo Portal de Solicitação de Atividade Cooperativa.*"
+    + "\n\n*Protocolo:* " + S.protocolo
+    + "\n*Contratante:* " + (S.razao || emp || "—")
+    + (S.unidade ? "\n*Unidade:* " + S.unidade : "")
+    + "\n*Atividade:* " + (S.funcao || "—") + " — " + (S.qtd || 1) + " cooperado(s)"
+    + (S.inicio ? "\n*Início previsto:* " + S.inicio.split("-").reverse().join("/") : "")
+    + (S.condNomes && S.condNomes.length ? "\n*Condições declaradas:* " + S.condNomes.join(", ") : "")
+    + "\n*Responsável:* " + (S.assNome || S.resp || "—")
+    + "\n\nAguardo a confirmação do recebimento e o retorno com o enquadramento técnico e os valores de referência.";
+
+  const c = centralDaVez();
+
+  // botão do Guia: uma central quando dá para saber, as duas quando não dá
+  const box=$("zapGuiaBox");
+  if(box){
+    box.innerHTML = c
+      ? botaoZap(c, "Falar com a Central de " + CENTRAIS[c].nome, msgDuvida(c))
+      : botaoZap("obras", "Central de Obras e Serviços Gerais", msgDuvida("obras"))
+        + botaoZap("saude", "Central de Saúde e Alimentação", msgDuvida("saude"));
+  }
+
+  // botão do protocolo: sempre a central da atividade escolhida
+  const a=$("zapProto");
+  if(a && S.protocolo){
+    const cc = c || CENTRAL_PADRAO;
+    a.href = linkZap(cc, msgProto(cc));
+    a.innerHTML = '<span class="zi">✆</span> Enviar para a Central de ' + CENTRAIS[cc].nome;
+    S.centralDestino = CENTRAIS[cc].nome;
+    S.centralFone = CENTRAIS[cc].fone;
+  }
+}
+atualizaZap();
+$("funcao").addEventListener("change",atualizaZap);
+
+/* guia da relação cooperativa */
+let guiaSó=false;
+function abreGuia(){ $("guia").classList.remove("hide"); document.body.style.overflow="hidden"; }
+function fechaGuia(){
+  $("guia").classList.add("hide"); document.body.style.overflow="";
+  // saindo do modo “só guia”, o formulário volta a aparecer
+  document.querySelectorAll("body > .wrap, .nav, .steps").forEach(el=>el.classList.remove("oculto"));
+  $("irFormulario").classList.add("hide");
+}
+$("btGuia").onclick=abreGuia;
+$("fecharGuia").onclick=fechaGuia;
+$("irFormulario").onclick=fechaGuia;
+
+/* ?guia=1 — abre direto no Guia, sem o formulário atrás.
+   Combina com a parceira: ?c=petrox&guia=1                     */
+if(ehModoGuia()){
+  document.querySelectorAll("body > .wrap, .nav, .steps").forEach(el=>el.classList.add("oculto"));
+  $("irFormulario").classList.remove("hide");
+  $("fecharGuia").title="Fechar";
+  abreGuia();
+}
+$("guia").addEventListener("click",e=>{ if(e.target===$("guia")) $("fecharGuia").click(); });
+$("imprimirGuia").onclick=()=>{
+  guiaSó=true;
+  document.querySelectorAll("body > .wrap, header .steps").forEach(el=>el.classList.add("noprint"));
+  window.print();
+  setTimeout(()=>{ document.querySelectorAll("body > .wrap").forEach(el=>el.classList.remove("noprint")); guiaSó=false; },600);
+};
+window.addEventListener("beforeprint",()=>{ if(!guiaSó && !$("guia").classList.contains("hide")) $("guia").classList.add("hide"); });
+
+/* modo interno: toque triplo na marca */
+let toques=0,timer=null;
+$("marca").addEventListener("click",()=>{
+  toques++; clearTimeout(timer); timer=setTimeout(()=>toques=0,900);
+  if(toques>=3){ toques=0; $("painel").classList.toggle("hide"); }
+});
+if(location.search.indexOf("i=1")>-1){ $("painel").classList.remove("hide"); }
+</script>
+</body>
+</html>

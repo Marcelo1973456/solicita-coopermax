@@ -398,7 +398,13 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
 
 <script>
 /* ===== CONFIGURAÇÃO ===== */
-// URL do webhook do fluxo n8n. Vazio = o protocolo é só impresso/salvo pelo contratante.
+/* Envio automático por e-mail, sem servidor. Cole aqui a Access Key gratuita do
+   Web3Forms (web3forms.com — informe coopermaxgestao@gmail.com e ela chega por e-mail).
+   Vazio = não envia e-mail; o portal segue funcionando normalmente.            */
+const EMAIL_KEY = "";
+const EMAIL_ASSUNTO = "[COOPERMAX] Nova solicitação de atividade";
+
+/* Webhook do n8n, para quando houver. Pode conviver com o e-mail acima. */
 const WEBHOOK = "";
 
 /* Centrais de atendimento da COOPERMAX — formato internacional, só números.
@@ -568,6 +574,164 @@ const CARGOS = {
   "Motorista":{n:1,hoje:0,sug:[],perg:[
     {q:"Transporta inflamáveis ou combustíveis?",a:"inflam"},
     {q:"Utiliza motocicleta como meio de trabalho?",a:"moto"}]}
+};
+
+/* ===== REQUISITOS DE ENCAMINHAMENTO ==============================================
+   Para cada condição declarada pela contratante, o que a COOPERMAX precisa exigir,
+   verificar e negociar ANTES de encaminhar o cooperado. Uso interno.
+     bloq  — inegociáveis: sem isso, não encaminha
+     dCont — documentos e providências a exigir da contratante
+     dCoop — obrigações da própria COOPERMAX quanto ao cooperado
+     neg   — pontos a negociar a favor do cooperado
+     grave — risco de acidente grave: pesa no semáforo                            */
+const REQUISITOS = {
+  confin:{ grave:true, nr:"NR-33 — Espaço Confinado",
+    bloq:["Permissão de Entrada e Trabalho (PET) emitida para cada entrada",
+          "Medição da atmosfera antes da entrada e monitoramento contínuo",
+          "Vigia permanente do lado de fora — definir por escrito quem disponibiliza",
+          "Supervisor de Entrada designado por escrito pela contratante",
+          "Equipamento de resgate e equipe treinada disponíveis no local"],
+    dCont:["Procedimento de entrada em espaço confinado","Plano de resgate específico"],
+    dCoop:["Treinamento NR-33 do cooperado vigente (trabalhador autorizado, 16h)",
+           "ASO com aptidão expressa para espaço confinado"],
+    neg:["Vigia e supervisor por conta da contratante","Tempo de espera e preparação remunerado"] },
+
+  altura:{ grave:true, nr:"NR-35 — Trabalho em Altura",
+    bloq:["Análise de Risco por atividade e Permissão de Trabalho",
+          "Sistema de ancoragem verificado por profissional habilitado"],
+    dCont:["Procedimento de trabalho em altura","Comprovação de inspeção dos pontos de ancoragem"],
+    dCoop:["Treinamento NR-35 vigente (8h) do cooperado",
+           "ASO com aptidão expressa para trabalho em altura"],
+    neg:["Cinto paraquedista e talabarte por conta da contratante"] },
+
+  eletri:{ grave:true, nr:"NR-10 — Instalações Elétricas",
+    bloq:["Permissão de Trabalho para serviço energizado",
+          "Procedimento de bloqueio e etiquetagem quando desenergizado"],
+    dCont:["Prontuário das Instalações Elétricas","Diagrama unifilar atualizado"],
+    dCoop:["NR-10 básico (40h) vigente; SEP (40h) se sistema elétrico de potência",
+           "ASO com aptidão para trabalho com eletricidade"],
+    neg:["EPI dielétrico e ferramental isolado por conta da contratante"] },
+
+  areacl:{ grave:true, nr:"NR-20 — Inflamáveis e Combustíveis",
+    bloq:["Classe da instalação informada por escrito (I, II ou III)",
+          "Treinamento NR-20 compatível com a classe, antes do início"],
+    dCont:["Plano de resposta a emergência","Comprovação de brigada disponível no turno"],
+    dCoop:["Treinamento NR-20 do cooperado na classe correta"],
+    neg:["Treinamento NR-20 ministrado e custeado pela contratante","Integração remunerada"] },
+
+  inflam:{ grave:true, nr:"NR-16, Anexo 2 — Inflamáveis",
+    bloq:["Delimitação da área de risco em planta, assinada pelo RT de SST"],
+    dCont:["Planta com a área de risco delimitada"],
+    dCoop:[],
+    neg:["Periculosidade de 30% discriminada em rubrica própria na fatura"] },
+
+  quente:{ grave:true, nr:"Serviço a quente",
+    bloq:["Permissão de Trabalho a quente emitida a cada serviço",
+          "Medição de explosividade antes e durante o serviço",
+          "Vigia de fogo — definir por escrito quem disponibiliza",
+          "Isolamento da área e extintor no posto"],
+    dCont:["Procedimento de serviço a quente"],
+    dCoop:[],
+    neg:["Vigia de fogo por conta da contratante"] },
+
+  fumos:{ nr:"NR-15, Anexo 12 — Fumos metálicos",
+    bloq:["Medição de manganês na zona respiratória com o consumível realmente usado"],
+    dCont:["FISPQ do eletrodo, arame ou fluxo","Comprovação do sistema de exaustão"],
+    dCoop:["Respirador com CA compatível e fator de proteção adequado",
+           "PCMSO com exames de acompanhamento para exposição a manganês"],
+    neg:["Exaustão localizada nas frentes de soldagem — reduz exposição e pode reduzir o grau",
+         "Enquanto não houver medição, adicional pago por indício com revisão em 30 dias"] },
+
+  uvsold:{ nr:"NR-15, Anexo 7 — Radiação não-ionizante",
+    bloq:[], dCont:["Registro fotográfico da proteção adotada"],
+    dCoop:["Máscara de solda com filtro de tonalidade adequada, avental, mangote e perneira"],
+    neg:["Biombos e anteparos para proteger trabalhadores circunvizinhos"] },
+
+  radion:{ grave:true, nr:"Radiações ionizantes",
+    bloq:["Supervisor de proteção radiológica designado","Dosimetria individual fornecida e lida mensalmente"],
+    dCont:["Plano de proteção radiológica","Autorização do órgão competente"],
+    dCoop:["Treinamento em proteção radiológica","ASO com exames específicos"],
+    neg:["Dosímetro e leitura por conta da contratante"] },
+
+  pacien:{ nr:"NR-32 / NR-15, Anexo 14 — Agentes biológicos",
+    bloq:["Esquema vacinal completo antes do início (hepatite B, tétano, tríplice viral)"],
+    dCont:["Protocolo de precauções padrão","Fluxo de atendimento em caso de acidente com material biológico"],
+    dCoop:["Comprovante de vacinação em dia","Treinamento em precauções padrão e descarte de perfurocortantes"],
+    neg:["Vacinação custeada pela contratante","Profilaxia pós-exposição garantida e imediata"] },
+
+  isolam:{ grave:true, nr:"NR-32 — Isolamento",
+    bloq:["Protocolo de isolamento por escrito e EPI específico disponível no posto"],
+    dCont:["Protocolo de isolamento da unidade"],
+    dCoop:["Treinamento específico em isolamento","Vacinação em dia"],
+    neg:["EPI de isolamento sempre por conta da contratante"] },
+
+  sanita:{ nr:"NR-15, Anexo 14 + Súmula 448 do TST",
+    bloq:["Caracterização por escrito do sanitário como de uso público ou coletivo de grande circulação"],
+    dCont:["Descrição do local e do fluxo de pessoas"],
+    dCoop:["Vacinação (tétano e hepatite B)","EPI: luva de cano longo, bota, avental impermeável"],
+    neg:["Grau máximo de 40% quando caracterizado — não aceitar 20% por analogia a limpeza comum"] },
+
+  lixour:{ nr:"NR-15, Anexo 14 — Lixo urbano",
+    bloq:["Confirmação de que é coleta de lixo urbano, não resíduo de escritório"],
+    dCont:[], dCoop:["Vacinação em dia","EPI completo e uniforme com alta visibilidade"],
+    neg:["Grau máximo de 40%"] },
+
+  esgoto:{ grave:true, nr:"NR-15, Anexo 14 — Esgoto",
+    bloq:["Se houver entrada em galeria ou tanque, aplicar integralmente os requisitos de NR-33"],
+    dCont:["Procedimento de trabalho em rede de esgoto"],
+    dCoop:["Vacinação (tétano, hepatite A e B)","EPI impermeável completo"],
+    neg:["Grau máximo de 40%"] },
+
+  calor:{ nr:"NR-15, Anexo 3 — Calor",
+    bloq:["Avaliação de IBUTG no posto, em condição real de operação"],
+    dCont:["Medição de IBUTG","Comprovação de ventilação ou exaustão na área"],
+    dCoop:["ASO considerando sobrecarga térmica"],
+    neg:["Pausas para recuperação térmica","Água fresca disponível no posto","Aclimatização nos primeiros dias"] },
+
+  frio:{ nr:"NR-15, Anexo 9 — Frio",
+    bloq:[], dCont:["Registro da temperatura da câmara e do tempo de permanência"],
+    dCoop:["Vestimenta térmica adequada"],
+    neg:["Vestimenta térmica por conta da contratante","Pausas de recuperação"] },
+
+  ruido:{ nr:"NR-15, Anexo 1 — Ruído",
+    bloq:["Dosimetria de ruído por posto"],
+    dCont:["Laudo de dosimetria","Programa de conservação auditiva"],
+    dCoop:["Audiometria admissional e periódica","Protetor auricular com CA e atenuação compatível"],
+    neg:["Medidas de proteção coletiva antes do EPI (enclausuramento, barreiras)"] },
+
+  poeira:{ nr:"NR-15, Anexo 12 — Poeira mineral",
+    bloq:["Medição de sílica ou asbesto na zona respiratória"],
+    dCont:["Laudo de poeira mineral","Comprovação de umectação ou aspiração"],
+    dCoop:["Respirador com CA compatível","PCMSO com espirometria"],
+    neg:["Umectação e aspiração no lugar de varrição a seco"] },
+
+  quimic:{ nr:"NR-15, Anexos 11 e 13 — Agentes químicos",
+    bloq:["FISPQ de cada produto manipulado","Medição quando o agente tiver limite de tolerância"],
+    dCont:["FISPQ dos produtos","Chuveiro de emergência e lava-olhos quando aplicável"],
+    dCoop:["Treinamento sobre os produtos","EPI compatível com o agente"],
+    neg:["Substituição por produto menos agressivo quando houver alternativa"] },
+
+  vibrac:{ nr:"NR-15, Anexo 8 — Vibração",
+    bloq:["Medição de vibração no posto"],
+    dCont:["Laudo de vibração","Comprovação de manutenção das ferramentas"],
+    dCoop:["ASO considerando exposição a vibração"],
+    neg:["Rodízio de função e pausas","Ferramenta com sistema antivibratório"] },
+
+  moto:{ grave:true, nr:"NR-16, Anexo 5 — Motocicleta",
+    bloq:["CNH categoria A vigente","Motocicleta com manutenção comprovada"],
+    dCont:[], dCoop:["Capacete, luvas e vestimenta de proteção","ASO com aptidão para condução"],
+    neg:["Periculosidade de 30%","Manutenção e combustível reembolsados"] },
+
+  segpat:{ grave:true, nr:"NR-16, Anexo 3 — Segurança patrimonial",
+    bloq:["Comprovação de que a atividade é prestada por empresa autorizada pelo Ministério da Justiça"],
+    dCont:["Autorização de funcionamento"],
+    dCoop:["Curso de formação de vigilante vigente"],
+    neg:["Sem a autorização, NÃO caracterizar periculosidade — registrar como não enquadrado"] },
+
+  explos:{ grave:true, nr:"NR-16, Anexo 1 — Explosivos",
+    bloq:["Autorização do órgão competente","Área de risco delimitada em planta"],
+    dCont:["Licenças e plano de emergência"], dCoop:["Treinamento específico"],
+    neg:["Periculosidade de 30%"] }
 };
 
 /* ===== ESTADO ===== */
@@ -913,6 +1077,81 @@ async function finalizar(){
 
 function esc(s){ return String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
 
+/* ===== DOSSIÊ DE ENCAMINHAMENTO (uso interno) =====
+   Cruza as condições declaradas com a tabela REQUISITOS e devolve o que precisa
+   ser exigido, verificado e negociado — mais o semáforo de liberação.        */
+function montaDossie(){
+  const ids=S.condicoes||[];
+  const blocos=ids.map(i=>REQUISITOS[i]?Object.assign({id:i},REQUISITOS[i]):null).filter(Boolean);
+  const junta=k=>{ const v=[]; blocos.forEach(b=>(b[k]||[]).forEach(x=>{ if(!v.includes(x)) v.push(x); })); return v; };
+
+  const bloq=junta("bloq"), dCont=junta("dCont"), dCoop=junta("dCoop"), neg=junta("neg");
+  const normas=[...new Set(blocos.map(b=>b.nr))];
+  const temGrave=blocos.some(b=>b.grave);
+
+  // lacunas documentais declaradas pela própria contratante
+  const lacunas=[];
+  if(S.pgr==="Não existem") lacunas.push("A contratante declarou que NÃO possui PGR nem LTCAT.");
+  if(S.laudo==="Não existe") lacunas.push("Não há laudo de insalubridade ou periculosidade para o posto.");
+  if(ids.includes("quente") && S.pt==="Não aplicável")
+    lacunas.push("Há serviço a quente declarado, mas a Permissão de Trabalho foi marcada como não aplicável — contradição a esclarecer.");
+  if(ids.includes("confin") && S.pt==="Não aplicável")
+    lacunas.push("Há espaço confinado declarado sem Permissão de Trabalho prevista.");
+  if(!S.rtsst) lacunas.push("Responsável técnico de SST da contratante não informado.");
+
+  const quantPend=(S.apuracao&&S.apuracao.potencial)?S.apuracao.potencial:null;
+
+  let cor,rot,texto;
+  if(temGrave && lacunas.length){
+    cor="var(--erro)"; rot="NÃO ENCAMINHAR";
+    texto="Há risco de acidente grave declarado e lacuna documental na contratante. Resolver os itens inegociáveis e as lacunas antes de qualquer encaminhamento.";
+  } else if(temGrave){
+    cor="var(--alerta)"; rot="ENCAMINHAR SOMENTE APÓS CHECKLIST";
+    texto="Risco de acidente grave declarado. Conferir item a item os inegociáveis abaixo, por escrito, antes de liberar o cooperado.";
+  } else if(lacunas.length || quantPend){
+    cor="var(--alerta)"; rot="ENCAMINHAR COM PENDÊNCIA";
+    texto="Encaminhamento possível, com pendência documental a resolver em prazo definido e registrada por escrito com a contratante.";
+  } else if(blocos.length){
+    cor="var(--ok)"; rot="LIBERADO COM REQUISITOS";
+    texto="Sem risco grave e sem lacuna documental. Cumprir os requisitos abaixo e encaminhar.";
+  } else {
+    cor="var(--ok)"; rot="LIBERADO";
+    texto="Nenhuma condição declarada gera requisito especial de encaminhamento.";
+  }
+
+  return {bloq,dCont,dCoop,neg,normas,lacunas,quantPend,cor,rot,texto,temGrave};
+}
+
+function htmlDossie(){
+  const d=montaDossie();
+  const lista=(titulo,itens,marca)=>itens.length
+    ? "<div class='grupo' style='margin-top:14px'>"+titulo+"</div>"
+      + itens.map(i=>"<div class='li'><span class='mk'>"+marca+"</span><span>"+esc(i)+"</span></div>").join("")
+    : "";
+
+  let h="<div class='aviso' style='border-left-color:"+d.cor+";margin-top:4px'><b>"+d.rot+".</b> "+d.texto+"</div>";
+  if(d.normas.length)
+    h+="<p style='font-size:12.5px;color:var(--tinta-md);margin-bottom:6px'><b>Normas aplicáveis:</b> "+d.normas.map(esc).join(" · ")+"</p>";
+  if(d.lacunas.length)
+    h+="<div class='aviso' style='border-left-color:var(--erro)'><b>Lacunas declaradas pela contratante</b><br>"
+      + d.lacunas.map(l=>"• "+esc(l)).join("<br>")+"</div>";
+  if(d.quantPend)
+    h+="<div class='aviso' style='border-left-color:var(--alerta)'><b>Medição pendente:</b> "+esc(d.quantPend.t)
+      + " ("+esc(d.quantPend.base)+"). Pagar o adicional por indício e revisar em 30 dias — não deixar o cooperado sem adicional enquanto se apura.</div>";
+
+  h+=lista("Inegociáveis — sem isto, não encaminhar", d.bloq, "✕");
+  h+=lista("Exigir da contratante", d.dCont, "→");
+  h+=lista("Providenciar pela COOPERMAX", d.dCoop, "→");
+  h+=lista("Negociar a favor do cooperado", d.neg, "✓");
+
+  h+="<div class='grupo' style='margin-top:14px'>Sempre</div>"
+   + "<div class='li'><span class='mk'>→</span><span>Ordem de Serviço assinada pelo cooperado, com os riscos do posto descritos.</span></div>"
+   + "<div class='li'><span class='mk'>→</span><span>Ficha de entrega de EPI assinada, com CA e data.</span></div>"
+   + "<div class='li'><span class='mk'>→</span><span>Confirmar o preposto da contratante e reforçar que demandas passam pela coordenação.</span></div>"
+   + "<div class='li'><span class='mk'>→</span><span>Adicional discriminado em rubrica própria na fatura e no demonstrativo do cooperado.</span></div>";
+  return h;
+}
+
 function montaPainel(){
   const a=S.apuracao;
   const linhas=a.lista.map(i=>
@@ -969,20 +1208,92 @@ function montaPainel(){
       + "Insalubridade e periculosidade não se acumulam — aplica-se sempre a mais vantajosa ao cooperado. "
       + "Base de cálculo: retirada do cooperado (art. 7º, VI, Lei 12.690/2012).</p>";
   $("apuracao").innerHTML =
-    "<table><tr><th>Condição</th><th>Fundamento</th><th>Apuração</th><th>Grau</th></tr>"+linhas+"</table>" + bloco;
+    "<table><tr><th>Condição</th><th>Fundamento</th><th>Apuração</th><th>Grau</th></tr>"+linhas+"</table>" + bloco
+    + "<div style='margin-top:18px;padding-top:14px;border-top:2px solid var(--turq-esc)'>"
+    + "<h3 style='font-size:14px;color:var(--turq-esc);margin-bottom:2px'>DOSSIÊ DE ENCAMINHAMENTO</h3>"
+    + "<p class='sub' style='margin-bottom:8px'>O que verificar, exigir e negociar antes de encaminhar o cooperado.</p>"
+    + htmlDossie() + "</div>";
+}
+
+/* Texto completo da solicitação + apuração + dossiê, para o corpo do e-mail interno. */
+function textoInterno(){
+  const a=S.apuracao||{}, d=montaDossie();
+  const bl=(t,arr,m)=>arr&&arr.length ? "\n"+t+"\n"+arr.map(i=>"  "+m+" "+i).join("\n")+"\n" : "";
+  return ""
+  + "SOLICITAÇÃO DE ATIVIDADE COOPERATIVA\n"
+  + "Protocolo: "+S.protocolo+"    "+S.dataHora+"\n"
+  + "Central: "+(S.centralDestino||"—")+"\n"
+  + "=================================================\n\n"
+  + "CONTRATANTE\n"
+  + "  "+(S.razao||"—")+"   CNPJ "+(S.cnpj||"—")+"\n"
+  + "  Unidade: "+(S.unidade||"—")+"\n"
+  + "  Responsável: "+(S.resp||"—")+" ("+(S.cargo||"—")+")\n"
+  + "  Contato: "+(S.fone||"—")+"  ·  "+(S.email||"—")+"\n"
+  + "  RT de SST: "+(S.rtsst||"NÃO INFORMADO")+"\n\n"
+  + "ATIVIDADE\n"
+  + "  "+(S.funcao||"—")+" — "+(S.qtd||1)+" cooperado(s)\n"
+  + "  Início: "+(S.inicio||"—")+"   Regime: "+(S.regime||"—")+" / "+(S.escala||"—")
+  +    (S.horas?"   "+S.horas+" h/mês":"")+"\n"
+  + "  Descrição: "+(S.descricao||"—")+"\n"
+  + "  Qualificação exigida: "+(S.qualif||"—")+"\n\n"
+  + "CONDIÇÕES DECLARADAS\n  "+((S.condNomes||[]).join("\n  ")||"—")+"\n"
+  +    (S.quimicos?"  Químicos: "+S.quimicos+"\n":"")
+  + "  PGR/LTCAT: "+(S.pgr||"—")+"   Laudo do posto: "+(S.laudo||"—")+"   PT: "+(S.pt||"—")+"\n\n"
+  + "APURAÇÃO TÉCNICA\n"
+  + "  Aplicar agora: "+(a.aplicado ? (a.aplicado.enq==="PERIC"?"Periculosidade ":"Insalubridade ")+a.aplicado.pct+"% — "+a.aplicado.base : "sem adicional")+"\n"
+  +    (a.potencial ? "  Potencial: "+a.potencial.pct+"% ("+a.potencial.t+") — exige medição\n" : "")
+  + "  Carteira: "+(a.alerta||"—")+"\n  "+(a.acao||"")+"\n\n"
+  + "=================================================\n"
+  + "DOSSIÊ DE ENCAMINHAMENTO — USO INTERNO\n"
+  + "=================================================\n"
+  + ">>> "+d.rot+" <<<\n"+d.texto+"\n"
+  +    (d.normas.length?"\nNormas aplicáveis: "+d.normas.join(" · ")+"\n":"")
+  +    bl("LACUNAS DECLARADAS PELA CONTRATANTE", d.lacunas, "!")
+  +    bl("INEGOCIÁVEIS — SEM ISTO, NÃO ENCAMINHAR", d.bloq, "X")
+  +    bl("EXIGIR DA CONTRATANTE", d.dCont, "-")
+  +    bl("PROVIDENCIAR PELA COOPERMAX", d.dCoop, "-")
+  +    bl("NEGOCIAR A FAVOR DO COOPERADO", d.neg, "+")
+  + "\nACEITE ELETRÔNICO\n"
+  + "  "+(S.assNome||"—")+"   CPF "+(S.assCpf||"—")+"\n"
+  + "  "+(S.dataHora||"—")+"   Verificador: "+(S.verificador||"—")+"\n";
 }
 
 function enviar(){
   const sel=document.querySelector("#e5 .selo p");
-  if(!WEBHOOK){
-    sel.innerHTML="Guarde este protocolo. Use <b>Imprimir / salvar em PDF</b> e envie à COOPERMAX.";
+  const canais=[];
+
+  if(EMAIL_KEY){
+    canais.push(
+      fetch("https://api.web3forms.com/submit",{
+        method:"POST",
+        headers:{"Content-Type":"application/json",Accept:"application/json"},
+        body:JSON.stringify({
+          access_key:EMAIL_KEY,
+          subject:EMAIL_ASSUNTO+" · "+(S.apuracao&&montaDossie().rot||"")+" · "+(S.funcao||"")+" · "+(S.razao||""),
+          from_name:"Portal COOPERMAX",
+          replyto:S.email||"",
+          protocolo:S.protocolo,
+          message:textoInterno()
+        })
+      }).then(r=>{ if(!r.ok) throw 0; })
+    );
+  }
+  if(WEBHOOK){
+    canais.push(
+      fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(S)})
+        .then(r=>{ if(!r.ok) throw 0; })
+    );
+  }
+
+  if(!canais.length){
+    sel.innerHTML="Protocolo gerado. Use o botão do WhatsApp abaixo para enviar à COOPERMAX, "
+                + "ou <b>Imprimir / salvar em PDF</b>.";
     return;
   }
   sel.textContent="Enviando à COOPERMAX…";
-  fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(S)})
-    .then(r=>{ if(!r.ok) throw 0;
-      sel.innerHTML="Recebido pela COOPERMAX. O retorno com o enquadramento técnico e os valores de referência virá para <b>"+esc(S.email)+"</b>."; })
-    .catch(()=>{ sel.innerHTML="<b>Não foi possível enviar automaticamente.</b> Use <b>Imprimir / salvar em PDF</b> e encaminhe este protocolo à COOPERMAX."; });
+  Promise.all(canais)
+    .then(()=>{ sel.innerHTML="Recebido pela COOPERMAX. O retorno com o enquadramento técnico e os valores de referência virá para <b>"+esc(S.email)+"</b>."; })
+    .catch(()=>{ sel.innerHTML="<b>Não foi possível enviar automaticamente.</b> Use o botão do WhatsApp abaixo ou <b>Imprimir / salvar em PDF</b> e encaminhe à COOPERMAX."; });
 }
 
 /* ===== WHATSAPP DAS CENTRAIS — mensagem sempre identificando a origem ===== */
@@ -1015,6 +1326,26 @@ function botaoZap(chave,rotulo,msg){
     + linkZap(chave,msg) + '"><span class="zi">✆</span> ' + rotulo + '</a>';
 }
 
+/* Bloco anexado ao fim da mensagem de WhatsApp — orienta a coordenação que recebe.
+   Vai junto porque quem lê do outro lado é a COOPERMAX, não a contratante.     */
+function resumoInterno(){
+  if(!S.protocolo || !S.apuracao) return "";
+  const a=S.apuracao, d=montaDossie();
+  let t="\n\n———————————————\n_Apuração automática COOPERMAX_\n"
+      + "*"+d.rot+"*\n";
+  t += "Enquadramento: " + (a.aplicado
+        ? (a.aplicado.enq==="PERIC"?"periculosidade ":"insalubridade ")+a.aplicado.pct+"% ("+a.aplicado.base+")"
+        : "sem adicional") + "\n";
+  if(a.potencial) t += "Potencial: "+a.potencial.pct+"% — "+a.potencial.t+" (exige medição)\n";
+  if(a.alerta && a.alerta!=="SEM REFERÊNCIA") t += "Carteira: "+a.alerta+"\n";
+  const corta=(arr,n)=>arr.slice(0,n).map(x=>"• "+x).join("\n")
+    + (arr.length>n ? "\n• …e mais "+(arr.length-n)+" no protocolo" : "");
+  if(d.lacunas.length) t += "\n*Lacunas ("+d.lacunas.length+"):*\n"+corta(d.lacunas,3)+"\n";
+  if(d.bloq.length)    t += "\n*Inegociáveis ("+d.bloq.length+"):*\n"+corta(d.bloq,3)+"\n";
+  t += "\n_Protocolo completo com o dossiê: botão Imprimir / salvar em PDF._";
+  return t;
+}
+
 function atualizaZap(){
   const emp=nomeParceira();
 
@@ -1035,9 +1366,12 @@ function atualizaZap(){
     + (S.unidade ? "\n*Unidade:* " + S.unidade : "")
     + "\n*Atividade:* " + (S.funcao || "—") + " — " + (S.qtd || 1) + " cooperado(s)"
     + (S.inicio ? "\n*Início previsto:* " + S.inicio.split("-").reverse().join("/") : "")
-    + (S.condNomes && S.condNomes.length ? "\n*Condições declaradas:* " + S.condNomes.join(", ") : "")
+    + (S.condNomes && S.condNomes.length ? "\n*Condições declaradas:* "
+        + S.condNomes.slice(0,4).join(", ")
+        + (S.condNomes.length>4 ? " e mais "+(S.condNomes.length-4) : "") : "")
     + "\n*Responsável:* " + (S.assNome || S.resp || "—")
-    + "\n\nAguardo a confirmação do recebimento e o retorno com o enquadramento técnico e os valores de referência.";
+    + "\n\nAguardo a confirmação do recebimento e o retorno com o enquadramento técnico e os valores de referência."
+    + resumoInterno();
 
   const c = centralDaVez();
 

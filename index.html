@@ -207,6 +207,7 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
       <optgroup label="Alimentação">
         <option>Auxiliar de serviços de alimentação</option><option>Cozinheiro</option>
         <option>Atendente de lanchonete</option><option>Auxiliar de padaria</option>
+        <option>Operador de caixa</option><option>Repositor</option>
       </optgroup>
       <optgroup label="Saúde">
         <option>Técnico de enfermagem</option><option>Enfermeiro</option>
@@ -536,13 +537,30 @@ const CARGOS = {
   "Auxiliar de serviços de alimentação":{n:44,hoje:20,sug:[],perg:[
     {q:"Trabalha habitualmente junto a fogão, forno ou chapa industrial?",a:"calor"},
     {q:"Entra habitualmente em câmara fria?",a:"frio"},
-    {q:"Higieniza sanitário de uso público ou coletivo?",a:"sanita"}]},
+    {q:"Higieniza sanitário de uso público ou coletivo de grande circulação?",a:"sanita"},
+    {q:"Atua na lavagem de louças e panelas, com piso ou vestimenta molhados durante a maior parte do período?",a:"umidad"},
+    {q:"Manipula produtos de limpeza concentrados (desengordurante, cloro, saneantes)?",a:"quimic"},
+    {q:"O ruído exige elevar a voz para conversar a um metro de distância?",a:"ruido"}]},
   "Cozinheiro":{n:3,hoje:null,sug:["calor"],perg:[
     {q:"Entra habitualmente em câmara fria?",a:"frio"},
-    {q:"O ambiente tem exaustão adequada sobre a linha de cocção?",a:null}]},
+    {q:"Há exaustão localizada sobre a linha de cocção, em funcionamento?",a:null},
+    {q:"A cozinha é climatizada ou tem ventilação forçada na área de fogões?",a:null},
+    {q:"Manipula produtos de limpeza concentrados (desengordurante, cloro, saneantes)?",a:"quimic"},
+    {q:"O ruído exige elevar a voz para conversar a um metro de distância?",a:"ruido"}]},
   "Auxiliar de padaria":{n:2,hoje:null,sug:[],perg:[
     {q:"Trabalha junto ao forno por período habitual?",a:"calor"},
-    {q:"Entra habitualmente em câmara fria?",a:"frio"}]},
+    {q:"Entra habitualmente em câmara fria?",a:"frio"},
+    {q:"Manipula produtos de limpeza concentrados (desengordurante, cloro, saneantes)?",a:"quimic"}]},
+  "Atendente de lanchonete":{n:4,hoje:0,sug:[],perg:[
+    {q:"Opera fritadeira, chapa ou forno por período habitual?",a:"calor"},
+    {q:"Entra habitualmente em câmara fria ou freezer?",a:"frio"},
+    {q:"Higieniza sanitário de uso público ou coletivo de grande circulação?",a:"sanita"}]},
+  "Operador de caixa":{n:1,hoje:0,sug:[],perg:[
+    {q:"Higieniza sanitário de uso público ou coletivo de grande circulação?",a:"sanita"},
+    {q:"Auxilia na área de produção junto a fogão, forno ou chapa?",a:"calor"}]},
+  "Repositor":{n:2,hoje:null,sug:[],perg:[
+    {q:"Entra habitualmente em câmara fria ou freezer?",a:"frio"},
+    {q:"Faz a coleta e o transporte de resíduos do refeitório?",a:null}]},
   "Técnico de enfermagem":{n:12,hoje:20,sug:["pacien"],perg:[
     {q:"Há contato com paciente em isolamento por doença infectocontagiosa?",a:"isolam"}]},
   "Enfermeiro":{n:1,hoje:20,sug:["pacien"],perg:[

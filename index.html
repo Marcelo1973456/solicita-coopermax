@@ -203,24 +203,36 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
         <option>Carpinteiro</option><option>Armador</option><option>Pintor</option>
         <option>Betoneiro</option><option>Auxiliar de manutenção predial</option>
         <option>Almoxarife</option><option>Mestre de obras</option>
+        <option>Meio oficial de pedreiro</option><option>Meio oficial de pintura</option>
+        <option>Apontador de obras</option><option>Montador de estruturas</option>
       </optgroup>
       <optgroup label="Alimentação">
         <option>Auxiliar de serviços de alimentação</option><option>Cozinheiro</option>
         <option>Atendente de lanchonete</option><option>Auxiliar de padaria</option>
         <option>Operador de caixa</option><option>Repositor</option>
+        <option>Garçom</option>
       </optgroup>
       <optgroup label="Saúde">
         <option>Técnico de enfermagem</option><option>Enfermeiro</option>
         <option>Técnico de laboratório</option><option>Técnico de radiologia</option>
-        <option>Atendente de consultório</option><option>Cuidador de idoso</option>
+        <option>Atendente de consultório</option><option>Auxiliar de consultório</option>
+        <option>Cuidador de idoso</option><option>Biomédico</option>
+        <option>Auxiliar de farmácia</option><option>Fisioterapeuta</option>
+        <option>Nutricionista</option><option>Psicólogo</option>
+        <option>Fonoaudiólogo</option><option>Psicopedagogo</option>
+        <option>Monitor de dependentes químicos</option><option>Orientador social</option>
       </optgroup>
       <optgroup label="Serviços gerais e condomínio">
-        <option>Auxiliar de serviços gerais</option><option>Porteiro</option>
-        <option>Rondista</option><option>Recepcionista</option>
+        <option>Auxiliar de serviços gerais</option><option>Encarregado de serviços gerais</option>
+        <option>Porteiro</option><option>Rondista</option>
+        <option>Recepcionista</option><option>Doméstica</option>
       </optgroup>
       <optgroup label="Administrativo">
-        <option>Auxiliar administrativo</option><option>Operador de telemarketing</option>
-        <option>Analista de licitação</option><option>Motorista</option>
+        <option>Auxiliar administrativo</option><option>Auxiliar administrativo financeiro</option>
+        <option>Auxiliar financeiro</option><option>Auxiliar de faturamento</option>
+        <option>Operador de telemarketing</option><option>Analista de licitação</option>
+        <option>Analista de licitação sênior</option><option>Assistente comercial</option>
+        <option>Motorista</option>
       </optgroup>
       <option value="OUTRA">Outra — descrever abaixo</option>
     </select>
@@ -589,6 +601,56 @@ const CARGOS = {
   "Betoneiro":{n:2,hoje:null,sug:["poeira","ruido","vibrac"],perg:[]},
   "Carpinteiro":{n:5,hoje:null,sug:["ruido"],perg:[]},
   "Armador":{n:5,hoje:null,sug:["ruido"],perg:[]},
+  "Garçom":{n:2,hoje:0,sug:[],perg:[
+    {q:"Higieniza sanitário de uso público ou coletivo de grande circulação?",a:"sanita"},
+    {q:"Entra habitualmente em câmara fria ou freezer?",a:"frio"}]},
+  "Meio oficial de pedreiro":{n:4,hoje:null,sug:["poeira","ruido"],perg:[]},
+  "Meio oficial de pintura":{n:1,hoje:20,sug:["quimic"],perg:[
+    {q:"Aplica tinta ou solvente em ambiente fechado ou sem ventilação?",a:null}]},
+  "Apontador de obras":{n:1,hoje:null,sug:[],perg:[
+    {q:"Permanece habitualmente na frente de serviço, junto às atividades de obra?",a:"poeira"}]},
+  "Montador de estruturas":{n:1,hoje:null,sug:["ruido"],perg:[
+    {q:"Executa montagem em altura acima de 2 metros?",a:"altura"},
+    {q:"Executa ou acompanha serviço de solda?",a:"fumos"}]},
+  "Auxiliar de consultório":{n:1,hoje:null,sug:[],perg:[
+    {q:"Há contato habitual com pacientes ou material biológico?",a:"pacien"}]},
+  "Biomédico":{n:1,hoje:20,sug:["pacien"],perg:[
+    {q:"Manipula material de paciente com doença infectocontagiosa?",a:"isolam"},
+    {q:"Manipula reagentes químicos no laboratório?",a:"quimic"}]},
+  "Auxiliar de farmácia":{n:1,hoje:null,sug:[],perg:[
+    {q:"Realiza manipulação ou fracionamento de medicamentos?",a:"quimic"},
+    {q:"Há contato habitual com pacientes?",a:"pacien"}]},
+  "Fisioterapeuta":{n:2,hoje:null,sug:[],perg:[
+    {q:"Há contato habitual com pacientes ou material biológico?",a:"pacien"},
+    {q:"Atende paciente em isolamento por doença infectocontagiosa?",a:"isolam"}]},
+  "Nutricionista":{n:2,hoje:0,sug:[],perg:[
+    {q:"Permanece habitualmente na área de produção da cozinha, junto a fogões e fornos?",a:"calor"},
+    {q:"Há contato habitual com pacientes?",a:"pacien"}]},
+  "Psicólogo":{n:2,hoje:0,sug:[],perg:[
+    {q:"Atende em unidade de saúde com contato habitual com pacientes?",a:"pacien"}]},
+  "Fonoaudiólogo":{n:1,hoje:0,sug:[],perg:[
+    {q:"Atende em unidade de saúde com contato habitual com pacientes?",a:"pacien"}]},
+  "Psicopedagogo":{n:1,hoje:0,sug:[],perg:[]},
+  "Monitor de dependentes químicos":{n:1,hoje:null,sug:[],perg:[
+    {q:"Há contato habitual com pacientes, fluidos corporais ou higienização do assistido?",a:"pacien"},
+    {q:"Há paciente em isolamento por doença infectocontagiosa na unidade?",a:"isolam"}]},
+  "Orientador social":{n:1,hoje:0,sug:[],perg:[]},
+  "Doméstica":{n:1,hoje:0,sug:[],perg:[
+    {q:"Manipula produtos de limpeza concentrados (cloro, desengordurante, saneantes)?",a:"quimic"},
+    {q:"A higienização é em residência particular? (limpeza residencial NÃO enquadra na Súmula 448)",a:null}]},
+  "Auxiliar administrativo financeiro":{n:2,hoje:0,sug:[],perg:[]},
+  "Auxiliar financeiro":{n:1,hoje:0,sug:[],perg:[]},
+  "Auxiliar de faturamento":{n:1,hoje:0,sug:[],perg:[]},
+  "Auxiliar administrativo":{n:2,hoje:0,sug:[],perg:[]},
+  "Operador de telemarketing":{n:7,hoje:0,sug:[],perg:[]},
+  "Analista de licitação":{n:1,hoje:0,sug:[],perg:[]},
+  "Analista de licitação sênior":{n:1,hoje:0,sug:[],perg:[]},
+  "Assistente comercial":{n:1,hoje:0,sug:[],perg:[]},
+  "Almoxarife":{n:1,hoje:null,sug:[],perg:[
+    {q:"O almoxarifado fica dentro da frente de serviço, com poeira ou ruído de obra?",a:"poeira"}]},
+  "Mestre de obras":{n:1,hoje:null,sug:[],perg:[
+    {q:"Permanece habitualmente nas frentes de serviço, junto às atividades?",a:"poeira"},
+    {q:"Acompanha serviço a quente, espaço confinado ou trabalho em altura?",a:null}]},
   "Motorista":{n:1,hoje:0,sug:[],perg:[
     {q:"Transporta inflamáveis ou combustíveis?",a:"inflam"},
     {q:"Utiliza motocicleta como meio de trabalho?",a:"moto"}]}

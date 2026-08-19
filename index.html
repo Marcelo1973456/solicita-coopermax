@@ -322,8 +322,12 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
     <div class="tags" id="tagsCond"></div>
     <div class="grupo">Aceite eletrônico</div>
     <dl id="aceite"></dl>
-    <a class="btn-zap noprint" id="zapProto" target="_blank" rel="noopener">
-      <span class="zi">✆</span> Falar com a Central no WhatsApp</a>
+    <button class="btn-zap noprint" id="zapProto"><span class="zi">✆</span> Enviar para a Central no WhatsApp</button>
+    <button class="btn-s noprint" style="width:100%;margin-top:8px" id="copiarZap">Copiar a mensagem</button>
+    <button class="btn-s noprint" style="width:100%;margin-top:8px" id="baixarProto">Baixar o protocolo (arquivo)</button>
+    <p class="noprint" style="font-size:11.5px;color:var(--tinta-md);margin-top:10px;text-align:center">
+      Se o WhatsApp não abrir sozinho, use <b>Copiar a mensagem</b> e cole na conversa da Central.</p>
+    <p style="font-size:10.5px;color:#9AA3A5;margin-top:14px;text-align:center" id="marcaVersao"></p>
   </div>
 
   <div class="interno hide" id="painel">
@@ -419,6 +423,10 @@ const EMAIL_ASSUNTO = "[COOPERMAX] Nova solicitação de atividade";
 
 /* Webhook do n8n, para quando houver. Pode conviver com o e-mail acima. */
 const WEBHOOK = "";
+
+/* Marca da versão publicada. Aparece no rodapé do protocolo — serve para conferir,
+   de fora, se o arquivo no ar é o mais recente.                                  */
+const VERSAO = "v1.9 · 17/08/2026";
 
 /* Centrais de atendimento da COOPERMAX — formato internacional, só números.
    A solicitação é encaminhada automaticamente para a central da área da atividade. */
@@ -1062,7 +1070,15 @@ $("btAvancar").onclick = async ()=>{
     if(!preenchido(["assNome","assCpf"]))return;
     await finalizar(); etapa=5; mostra(5); return;
   }
-  if(etapa===5){ window.print(); return; }
+  if(etapa===5){
+    try{
+      if(typeof window.print!=="function") throw 0;
+      window.print();
+    }catch(e){
+      alert("Este navegador não abriu a impressão.\n\nUse o botão “Baixar o protocolo (arquivo)” logo abaixo — o arquivo salva no aparelho e pode ser aberto e impresso depois.");
+    }
+    return;
+  }
   etapa++; mostra(etapa);
 };
 
@@ -1401,9 +1417,62 @@ function centralDaVez(){
   return null;
 }
 
+/* Abre o WhatsApp de forma resiliente: tenta nova aba; se o navegador bloquear,
+   navega na mesma aba. Nunca depende de target="_blank".                        */
+function abrirZap(url){
+  let w=null;
+  try{ w=window.open(url,"_blank"); }catch(e){}
+  if(!w) location.href=url;
+}
+
+function copiarTexto(txt,botao){
+  const ok=()=>{ if(!botao) return; const a=botao.textContent;
+    botao.textContent="Copiado! Cole na conversa da Central";
+    setTimeout(()=>botao.textContent=a,2200); };
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(txt).then(ok,()=>copiaAntiga(txt,ok)); return;
+    }
+  }catch(e){}
+  copiaAntiga(txt,ok);
+}
+function copiaAntiga(txt,ok){
+  const t=document.createElement("textarea");
+  t.value=txt; t.style.cssText="position:fixed;top:0;left:0;opacity:0";
+  document.body.appendChild(t); t.focus(); t.select();
+  try{ document.execCommand("copy"); ok(); }catch(e){ alert("Copie manualmente:\n\n"+txt); }
+  document.body.removeChild(t);
+}
+
+/* Salva o protocolo como arquivo, para quem não consegue usar a impressão do navegador. */
+function baixarProtocolo(){
+  const corpo=document.querySelector("#e5 .proto").cloneNode(true);
+  corpo.querySelectorAll(".noprint,button,a").forEach(e=>e.remove());
+  const doc='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">'
+    +'<title>Protocolo '+(S.protocolo||"")+' — COOPERMAX</title><style>'
+    +'body{font:13px/1.5 Calibri,Arial,sans-serif;color:#2E3436;max-width:720px;margin:24px auto;padding:0 18px}'
+    +'h3{font-size:17px;color:#17727C}dl{border-top:1px solid #DCE3E4;margin-top:12px}'
+    +'dl div{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #DCE3E4;font-size:13px}'
+    +'dt{flex:0 0 38%;color:#6B7477;font-weight:600}dd{flex:1}'
+    +'.grupo{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6B7477;margin:16px 0 8px}'
+    +'.tag{display:inline-block;background:#E6F5F7;color:#17727C;border-radius:5px;padding:3px 8px;font-size:11.5px;margin:2px 3px 2px 0}'
+    +'.selo{text-align:center;border-bottom:3px solid #28B0BC;padding-bottom:10px;margin-bottom:8px}'
+    +'.ic{display:none}.mono{font-family:monospace;font-size:12px}</style></head><body>'
+    +corpo.innerHTML+'</body></html>';
+  const blob=new Blob([doc],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="Protocolo_"+(S.protocolo||"COOPERMAX")+".html";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1500);
+}
+
 function botaoZap(chave,rotulo,msg){
-  return '<a class="btn-zap noprint" target="_blank" rel="noopener" href="'
-    + linkZap(chave,msg) + '"><span class="zi">✆</span> ' + rotulo + '</a>';
+  const b=document.createElement("button");
+  b.className="btn-zap noprint";
+  b.innerHTML='<span class="zi">✆</span> '+rotulo;
+  b.onclick=()=>abrirZap(linkZap(chave,msg));
+  return b;
 }
 
 /* Bloco anexado ao fim da mensagem de WhatsApp — orienta a coordenação que recebe.
@@ -1458,20 +1527,23 @@ function atualizaZap(){
   // botão do Guia: uma central quando dá para saber, as duas quando não dá
   const box=$("zapGuiaBox");
   if(box){
-    box.innerHTML = c
-      ? botaoZap(c, "Falar com a Central de " + CENTRAIS[c].nome, msgDuvida(c))
-      : botaoZap("obras", "Central de Obras e Serviços Gerais", msgDuvida("obras"))
-        + botaoZap("saude", "Central de Saúde e Alimentação", msgDuvida("saude"));
+    box.innerHTML="";
+    if(c) box.appendChild(botaoZap(c,"Falar com a Central de "+CENTRAIS[c].nome,msgDuvida(c)));
+    else {
+      box.appendChild(botaoZap("obras","Central de Obras e Serviços Gerais",msgDuvida("obras")));
+      box.appendChild(botaoZap("saude","Central de Saúde e Alimentação",msgDuvida("saude")));
+    }
   }
 
   // botão do protocolo: sempre a central da atividade escolhida
   const a=$("zapProto");
   if(a && S.protocolo){
     const cc = c || CENTRAL_PADRAO;
-    a.href = linkZap(cc, msgProto(cc));
-    a.innerHTML = '<span class="zi">✆</span> Enviar para a Central de ' + CENTRAIS[cc].nome;
+    S.mensagemZap  = msgProto(cc);
     S.centralDestino = CENTRAIS[cc].nome;
-    S.centralFone = CENTRAIS[cc].fone;
+    S.centralFone    = CENTRAIS[cc].fone;
+    a.innerHTML = '<span class="zi">✆</span> Enviar para a Central de ' + CENTRAIS[cc].nome;
+    a.onclick = ()=>abrirZap(linkZap(cc, S.mensagemZap));
   }
 }
 atualizaZap();
@@ -1506,6 +1578,10 @@ $("imprimirGuia").onclick=()=>{
   setTimeout(()=>{ document.querySelectorAll("body > .wrap").forEach(el=>el.classList.remove("noprint")); guiaSó=false; },600);
 };
 window.addEventListener("beforeprint",()=>{ if(!guiaSó && !$("guia").classList.contains("hide")) $("guia").classList.add("hide"); });
+
+$("marcaVersao").textContent = "Portal COOPERMAX " + VERSAO;
+$("copiarZap").onclick = function(){ copiarTexto(S.mensagemZap || "", this); };
+$("baixarProto").onclick = baixarProtocolo;
 
 /* modo interno: toque triplo na marca */
 let toques=0,timer=null;

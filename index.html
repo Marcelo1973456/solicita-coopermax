@@ -421,12 +421,16 @@ td{padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
 const EMAIL_KEY = "";
 const EMAIL_ASSUNTO = "[COOPERMAX] Nova solicitação de atividade";
 
-/* Webhook do n8n, para quando houver. Pode conviver com o e-mail acima. */
+/* Planilha de registro (Google Apps Script). Cole aqui a URL do aplicativo da web —
+   cada solicitação vira uma linha na planilha da COOPERMAX. Vazio = não registra.   */
+const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbx7kGjvOLuMpfojoMVNF6QkHydXZLd-cLdkGbP9w5VnsY8fV4LvIM_jlN7p221aTWfaeA/exec";
+
+/* Webhook do n8n, para quando houver. Pode conviver com os canais acima. */
 const WEBHOOK = "";
 
 /* Marca da versão publicada. Aparece no rodapé do protocolo — serve para conferir,
    de fora, se o arquivo no ar é o mais recente.                                  */
-const VERSAO = "v1.9 · 17/08/2026";
+const VERSAO = "v2.1 · 19/08/2026";
 
 /* Centrais de atendimento da COOPERMAX — formato internacional, só números.
    A solicitação é encaminhada automaticamente para a central da área da atividade. */
@@ -1130,6 +1134,7 @@ async function finalizar(){
               + String(agora.getHours()).padStart(2,"0") + String(agora.getMinutes()).padStart(2,"0");
   S.verificador = await hash(JSON.stringify(S));
   S.apuracao = apurar(marc);
+  comparaCarteira();                       // preenche alerta, praticado e efetivo em S.apuracao
 
   // via da contratante
   $("resumo").innerHTML = [
@@ -1218,6 +1223,38 @@ function montaDossie(){
   return {bloq,dCont,dCoop,neg,normas,lacunas,quantPend,cor,rot,texto,temGrave};
 }
 
+/* Compara a apuração desta solicitação com o que a carteira pratica hoje.
+   Usado no painel interno, na planilha e na mensagem de WhatsApp.            */
+function comparaCarteira(){
+  const perfil = CARGOS[S.funcao];
+  if(!perfil) return null;
+  const a = S.apuracao || {};
+  const alvo = a.potencial ? a.potencial.pct : (a.aplicado ? a.aplicado.pct : 0);
+  const hoje = perfil.hoje;
+  const rotHoje = hoje===null ? "não definido" : (hoje===0 ? "sem adicional" : hoje+"%");
+  let cor,titulo,corpo,acao;
+  if(hoje===null){
+    cor="var(--alerta)"; titulo="SEM DEFINIÇÃO NA CARTEIRA";
+    corpo="A matriz registra este cargo como “verificar”. Esta apuração passa a ser a referência — levar à Assembleia.";
+  } else if(alvo>hoje){
+    cor="var(--erro)"; titulo="DIVERGÊNCIA — PAGANDO A MENOS";
+    corpo="A carteira pratica <b>"+rotHoje+"</b> e a apuração indica <b>"+alvo+"%</b>. "
+      + "Revisar o enquadramento" + (perfil.n>1 ? " e verificar os demais <b>"+perfil.n+" cooperados</b> no mesmo cargo" : "") + ".";
+  } else if(alvo<hoje){
+    cor="var(--turq)"; titulo="APURADO ABAIXO DO PRATICADO";
+    corpo="A carteira pratica <b>"+rotHoje+"</b> e esta frente indica <b>"+alvo+"%</b>. "
+      + "Não reduzir sem laudo: o mesmo cargo pode ter postos com exposições distintas.";
+  } else {
+    cor="var(--ok)"; titulo="CONFORME";
+    corpo="A apuração confirma o percentual praticado na carteira (<b>"+rotHoje+"</b>).";
+  }
+  acao = corpo.replace(/<[^>]+>/g,"");
+  const r={cor,titulo,corpo,acao,praticadoHoje:hoje,efetivoCargo:perfil.n,alvo};
+  if(S.apuracao){ S.apuracao.alerta=titulo; S.apuracao.acao=acao;
+    S.apuracao.praticadoHoje=hoje; S.apuracao.efetivoCargo=perfil.n; }
+  return r;
+}
+
 function htmlDossie(){
   const d=montaDossie();
   const lista=(titulo,itens,marca)=>itens.length
@@ -1276,29 +1313,10 @@ function montaPainel(){
       + "Solicitar laudo e manter cláusula de revisão em 30 dias.</div>";
   }
   // comparativo com o praticado hoje na carteira
-  const perfil = CARGOS[S.funcao];
-  if(perfil){
-    const hoje = perfil.hoje;
-    const alvo = pot ? pot.pct : (ap ? ap.pct : 0);
-    const rotHoje = hoje===null ? "não definido" : (hoje===0 ? "sem adicional" : hoje+"%");
-    let cor="var(--turq)", titulo="", corpo="";
-    if(hoje===null){
-      cor="var(--alerta)"; titulo="SEM DEFINIÇÃO NA CARTEIRA";
-      corpo="A matriz registra este cargo como “verificar”. Esta apuração passa a ser a referência — levar à Assembleia.";
-    } else if(alvo>hoje){
-      cor="var(--erro)"; titulo="DIVERGÊNCIA — PAGANDO A MENOS";
-      corpo="A carteira pratica <b>"+rotHoje+"</b> e a apuração indica <b>"+alvo+"%</b>. "
-        + "Revisar o enquadramento" + (perfil.n>1 ? " e verificar os demais <b>"+perfil.n+" cooperados</b> no mesmo cargo" : "") + ".";
-    } else if(alvo<hoje){
-      cor="var(--turq)"; titulo="APURADO ABAIXO DO PRATICADO";
-      corpo="A carteira pratica <b>"+rotHoje+"</b> e esta frente indica <b>"+alvo+"%</b>. "
-        + "Não reduzir sem laudo: o mesmo cargo pode ter postos com exposições distintas.";
-    } else {
-      cor="var(--ok)"; titulo="CONFORME";
-      corpo="A apuração confirma o percentual praticado na carteira (<b>"+rotHoje+"</b>).";
-    }
-    bloco += "<div class='aviso' style='border-left-color:"+cor+"'><b>"+titulo+".</b> "+corpo
-      + " <span style='font-size:11.5px'>Efetivo no cargo: "+perfil.n+" cooperado(s) — matriz jun/2026.</span></div>";
+  const cmp = comparaCarteira();
+  if(cmp){
+    bloco += "<div class='aviso' style='border-left-color:"+cmp.cor+"'><b>"+cmp.titulo+".</b> "+cmp.corpo
+      + " <span style='font-size:11.5px'>Efetivo no cargo: "+cmp.efetivoCargo+" cooperado(s) — matriz jun/2026.</span></div>";
   }
   bloco += "<p style='font-size:12px;color:var(--tinta-md);margin-top:8px'>"
       + "Insalubridade e periculosidade não se acumulam — aplica-se sempre a mais vantajosa ao cooperado. "
@@ -1354,9 +1372,42 @@ function textoInterno(){
   + "  "+(S.dataHora||"—")+"   Verificador: "+(S.verificador||"—")+"\n";
 }
 
+/* Registro enxuto para a planilha — campos já apurados, prontos para coluna. */
+function registroPlanilha(){
+  const a=S.apuracao||{}, d=montaDossie();
+  return {
+    dataHora:S.dataHora, protocolo:S.protocolo, central:S.centralDestino||"",
+    parceira:S.parceira||"", razao:S.razao, cnpj:S.cnpj, unidade:S.unidade,
+    funcao:S.funcao, qtd:S.qtd, inicio:S.inicio, regime:S.regime, escala:S.escala, horas:S.horas,
+    condicoes:S.condNomes||[], pgr:S.pgr, laudo:S.laudo, pt:S.pt, rtsst:S.rtsst,
+    enquadramento: a.aplicado ? (a.aplicado.enq==="PERIC"?"Periculosidade":"Insalubridade") : "Sem adicional",
+    percentual: a.aplicado ? a.aplicado.pct : 0,
+    potencial: a.potencial ? a.potencial.pct+"% — "+a.potencial.t : "",
+    natureza: a.aplicado ? (a.aplicado.nat==="quant"?"medição":"inspeção") : "",
+    alerta:a.alerta||"",
+    praticado: (a.praticadoHoje===undefined ? null : a.praticadoHoje),
+    efetivo:a.efetivoCargo||"",
+    encaminhamento:d.rot, inegociaveis:d.bloq.length, lacunas:d.lacunas.length,
+    assNome:S.assNome, cargo:S.cargo, assCpf:S.assCpf, email:S.email, fone:S.fone,
+    verificador:S.verificador
+  };
+}
+
 function enviar(){
   const sel=document.querySelector("#e5 .selo p");
   const canais=[];
+
+  /* Planilha: envio sem leitura de resposta (evita bloqueio de origem cruzada).
+     Não entra na verificação de status — é registro, não confirmação. */
+  if(PLANILHA_URL){
+    try{
+      fetch(PLANILHA_URL,{
+        method:"POST", mode:"no-cors",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(registroPlanilha())
+      }).catch(()=>{});
+    }catch(e){}
+  }
 
   if(EMAIL_KEY){
     canais.push(
@@ -1382,8 +1433,9 @@ function enviar(){
   }
 
   if(!canais.length){
-    sel.innerHTML="Protocolo gerado. Use o botão do WhatsApp abaixo para enviar à COOPERMAX, "
-                + "ou <b>Imprimir / salvar em PDF</b>.";
+    sel.innerHTML = PLANILHA_URL
+      ? "Solicitação registrada na COOPERMAX. Use o botão do WhatsApp abaixo para avisar a Central."
+      : "Protocolo gerado. Use o botão do WhatsApp abaixo para enviar à COOPERMAX, ou <b>Baixar o protocolo</b>.";
     return;
   }
   sel.textContent="Enviando à COOPERMAX…";

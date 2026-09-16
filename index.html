@@ -430,7 +430,7 @@ const WEBHOOK = "";
 
 /* Marca da versão publicada. Aparece no rodapé do protocolo — serve para conferir,
    de fora, se o arquivo no ar é o mais recente.                                  */
-const VERSAO = "v2.1 · 19/08/2026";
+const VERSAO = "v2.3 · 16/09/2026";
 
 /* Centrais de atendimento da COOPERMAX — formato internacional, só números.
    A solicitação é encaminhada automaticamente para a central da área da atividade. */
@@ -1388,6 +1388,16 @@ function registroPlanilha(){
     praticado: (a.praticadoHoje===undefined ? null : a.praticadoHoje),
     efetivo:a.efetivoCargo||"",
     encaminhamento:d.rot, inegociaveis:d.bloq.length, lacunas:d.lacunas.length,
+    acaoCarteira:a.acao||"",
+    dossie:{
+      texto:d.texto,
+      normas:d.normas,
+      lacunas:d.lacunas,
+      bloq:d.bloq,
+      dCont:d.dCont,
+      dCoop:d.dCoop,
+      neg:d.neg
+    },
     assNome:S.assNome, cargo:S.cargo, assCpf:S.assCpf, email:S.email, fone:S.fone,
     verificador:S.verificador
   };
@@ -1527,25 +1537,11 @@ function botaoZap(chave,rotulo,msg){
   return b;
 }
 
-/* Bloco anexado ao fim da mensagem de WhatsApp — orienta a coordenação que recebe.
-   Vai junto porque quem lê do outro lado é a COOPERMAX, não a contratante.     */
-function resumoInterno(){
-  if(!S.protocolo || !S.apuracao) return "";
-  const a=S.apuracao, d=montaDossie();
-  let t="\n\n———————————————\n_Apuração automática COOPERMAX_\n"
-      + "*"+d.rot+"*\n";
-  t += "Enquadramento: " + (a.aplicado
-        ? (a.aplicado.enq==="PERIC"?"periculosidade ":"insalubridade ")+a.aplicado.pct+"% ("+a.aplicado.base+")"
-        : "sem adicional") + "\n";
-  if(a.potencial) t += "Potencial: "+a.potencial.pct+"% — "+a.potencial.t+" (exige medição)\n";
-  if(a.alerta && a.alerta!=="SEM REFERÊNCIA") t += "Carteira: "+a.alerta+"\n";
-  const corta=(arr,n)=>arr.slice(0,n).map(x=>"• "+x).join("\n")
-    + (arr.length>n ? "\n• …e mais "+(arr.length-n)+" no protocolo" : "");
-  if(d.lacunas.length) t += "\n*Lacunas ("+d.lacunas.length+"):*\n"+corta(d.lacunas,3)+"\n";
-  if(d.bloq.length)    t += "\n*Inegociáveis ("+d.bloq.length+"):*\n"+corta(d.bloq,3)+"\n";
-  t += "\n_Protocolo completo com o dossiê: botão Imprimir / salvar em PDF._";
-  return t;
-}
+/* A mensagem do solicitante leva apenas o protocolo. A apuração interna — semáforo,
+   percentual, carteira, lacunas e inegociáveis — nunca passa pelo aparelho da
+   contratante: vai do portal direto para a planilha, e de lá por e-mail para a
+   central responsável, com cópia para a gestão.                                  */
+
 
 function atualizaZap(){
   const emp=nomeParceira();
@@ -1572,7 +1568,7 @@ function atualizaZap(){
         + (S.condNomes.length>4 ? " e mais "+(S.condNomes.length-4) : "") : "")
     + "\n*Responsável:* " + (S.assNome || S.resp || "—")
     + "\n\nAguardo a confirmação do recebimento e o retorno com o enquadramento técnico e os valores de referência."
-    + resumoInterno();
+;
 
   const c = centralDaVez();
 
